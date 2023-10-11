@@ -1,0 +1,3 @@
+discord.py
+hvac
+asqlite @ git+https://github.com/Rapptz/asqlite@main
