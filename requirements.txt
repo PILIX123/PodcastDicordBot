@@ -1,3 +1,8 @@
 discord.py
 hvac
 asqlite @ git+https://github.com/Rapptz/asqlite@main
+requests
+pyPodcastParser
+sqlalchemy[asyncio]
+asyncio
+aiosqlite

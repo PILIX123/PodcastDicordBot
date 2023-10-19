@@ -1,13 +1,8 @@
-import asqlite
-
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from model.list import Base
 class Database():
     async def init(self) -> None:
-        #asqlite.create_pool("list.sqlite")
-        async with asqlite.connect("list.sqlite") as conn:
-            async with conn.cursor() as cursor:
-                if((await (await cursor.execute("SELECT name FROM sqlite_master WHERE name='list'")).fetchone())["name"] is not None):
-                    return
-                await cursor.execute('''CREATE TABLE list
-                                 (user, url)''')
-
-
+        engine = create_async_engine("sqlite+aiosqlite:///list.sqlite")
+        session = async_sessionmaker(bind=engine, expire_on_commit=False)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)

@@ -3,7 +3,7 @@ from vault.vault import Vault
 from discord import app_commands
 from database.db import Database
 import asqlite
-
+from sqlalchemy.ext.asyncio import create_async_engine
 
 vault = Vault()
 db = Database()
@@ -36,6 +36,7 @@ async def disconnect(interaction:discord.Interaction):
 
 @tree.command(name="testdb",description="add podcast url to subscription")
 async def add(interaction:discord.Interaction):
+
     async with asqlite.connect("list.sqlite") as conn:
         async with conn.cursor() as cursor:
             await cursor.execute('''CREATE TABLE list
