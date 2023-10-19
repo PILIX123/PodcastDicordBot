@@ -3,7 +3,6 @@ from vault.vault import Vault
 from discord import app_commands
 from database.db import Database
 import asqlite
-from sqlalchemy.ext.asyncio import create_async_engine
 
 vault = Vault()
 db = Database()
@@ -45,13 +44,9 @@ async def add(interaction:discord.Interaction):
             
             await conn.commit()
 
-@tree.command(name="readdb")
-async def read(interaction:discord.Interaction):
-    async with asqlite.connect("list.sqlite") as conn:
-        async with conn.cursor() as cursor:
-            res = await cursor.execute("SELECT url FROM list")
-            row = await res.fetchall()
-            await interaction.response.send_message(row[0]['url'])
+@tree.command(name="add_podcast")
+async def add(interaction:discord.Interaction):
+    await db.add(db.asyncSession,interaction.user.id,"atp.fm/rss")
 
 @client.event
 async def on_ready():
