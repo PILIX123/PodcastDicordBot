@@ -36,6 +36,7 @@ async def disconnect(interaction:discord.Interaction):
 @tree.command(name="add_podcast")
 async def add(interaction:discord.Interaction,url:str):
     await db.add(db.asyncSession,interaction.user.id,url)
+    await interaction.response.send_message("Podcast Added")
 
 @client.event
 async def on_ready():
