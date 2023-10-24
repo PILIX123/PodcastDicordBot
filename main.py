@@ -33,20 +33,9 @@ async def disconnect(interaction:discord.Interaction):
     else:
         await interaction.response.send_message("Not currently connected to a voice channel.")
 
-@tree.command(name="testdb",description="add podcast url to subscription")
-async def add(interaction:discord.Interaction):
-
-    async with asqlite.connect("list.sqlite") as conn:
-        async with conn.cursor() as cursor:
-            await cursor.execute('''CREATE TABLE list
-                                 (user, url)''')
-            await cursor.execute("INSERT INTO list VALUES ('13245','TT')")
-            
-            await conn.commit()
-
 @tree.command(name="add_podcast")
-async def add(interaction:discord.Interaction):
-    await db.add(db.asyncSession,interaction.user.id,"atp.fm/rss")
+async def add(interaction:discord.Interaction,url:str):
+    await db.add(db.asyncSession,interaction.user.id,url)
 
 @client.event
 async def on_ready():

@@ -12,11 +12,12 @@ class Database():
         async with sessionmaker() as session:
             stmt = select(PodcastList).where(PodcastList.user_id==userId)
             result = await session.execute(stmt)
-            if(result.first() is None):
-                    insertStmt = insert(PodcastList).values(user_id=userId,urls=url)
-                    await session.execute(insertStmt)
-                    await session.commit()
+            podcast = result.scalars().one_or_none()
+            if(podcast is not None):
+                urls = set(podcast.urls.split("||"))
+                urls.add(url)
+                podcast.urls = "||".join(urls)
             else:
-                podcastList = result.scalar()
-                podcastList.urls = podcastList.urls+"||"+url
-                await session.commit()
+                insertStmt = insert(PodcastList).values(user_id=userId,urls=url)
+                await session.execute(insertStmt)
+            await session.commit()
