@@ -2,7 +2,7 @@ import discord
 from vault.vault import Vault
 from discord import app_commands
 from database.db import Database
-from discord.ext import tasks
+from rssreader.reader import Reader
 
 vault = Vault()
 db = Database()
@@ -45,7 +45,15 @@ async def add(interaction:discord.Interaction,url:str):
 
 @tree.command(name="play")
 async def play(interaction:discord.Interaction,name:str):
-    await db.getFromTitle(interaction.user.id,name)
+    await interaction.response.defer(thinking=True)
+    title,url = await db.getFromTitle(interaction.user.id,name)
+    reader = Reader(url)
+    source = discord.FFmpegPCMAudio(reader.getLatestEpisode())
+    if interaction.guild.voice_client is not None:
+        interaction.guild.voice_client.play(source)
+        await interaction.followup.send(f"Playing {title}")
+    else:
+        await interaction.followup.send("Connect me to a voice channel first")
 
 @client.event
 async def on_ready():

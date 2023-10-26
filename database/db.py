@@ -30,14 +30,15 @@ class Database():
                 session.rollback()
                 return False
     
-    async def getFromTitle(self,userId:int,title:str):
+    async def getFromTitle(self,userId:int,title:str) -> tuple[str,str]:
         async with self.asyncSession() as session:
             stmt = select(Podcast) \
                 .where(Podcast.userId == userId) \
                 .where(Podcast.title == title)
 
             result = await session.execute(stmt)
-            print(result.all())
+            pod = result.scalar()
+            return (pod.title,pod.url)
 
     def __addUserPodcast(self,session:AsyncSession,userId:int,url:str):
         url = "https://"+url if not url.startswith("https://") or not url.startswith("http://") else url
