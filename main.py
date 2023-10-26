@@ -29,7 +29,7 @@ async def disconnect(interaction:discord.Interaction):
         if(interaction.guild.voice_client.is_playing()):
             interaction.guild.voice_client.stop()
         await interaction.guild.voice_client.disconnect()
-        await interaction.response.send_message("test")
+        await interaction.response.send_message("Disconnected")
     else:
         await interaction.response.send_message("Not currently connected to a voice channel.")
 

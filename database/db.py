@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, create_async_pool_from_url
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select
+from sqlalchemy import select, Insert
 from models.base import Base
 from models.user import User
 from models.podcasts import Podcast
@@ -20,7 +20,7 @@ class Database():
             result = await session.execute(stmt)
             user = result.scalars().one_or_none()
             if(user is not None):
-                self.__addPodcast(session,userId,url)
+                await session.execute(self.__addPodcast(userId,url))
             else:
                 self.__addUserPodcast(session,userId,url)
             try:
@@ -54,11 +54,11 @@ class Database():
                         ])
             )
 
-    def __addPodcast(self,session:AsyncSession,userId:int,url:str):
+    def __addPodcast(self,userId:int,url:str) -> Insert:
         url = "https://"+url if not url.startswith("https://") or not url.startswith("http://") else url
         reader = Reader(url)
         stmt = insert(Podcast).values(userId=userId,
                     url=url,
                     title=reader.podcast.title,
-                    author=reader.podcast.itunes_author_name).on_conflict_do_nothing(index_elements=['title'])
-        session.execute(stmt)
+                    author=reader.podcast.itunes_author_name).on_conflict_do_nothing(index_where=['title'])
+        return stmt
