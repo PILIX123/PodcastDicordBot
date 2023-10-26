@@ -35,8 +35,13 @@ async def disconnect(interaction:discord.Interaction):
 
 @tree.command(name="add_podcast")
 async def add(interaction:discord.Interaction,url:str):
-    await db.add(db.asyncSession,interaction.user.id,url)
-    await interaction.response.send_message("Podcast Added")
+    await interaction.response.defer(thinking=True)
+    success = await db.add(db.asyncSession,interaction.user.id,url)
+    if success:
+        await interaction.followup.send("Podcast added")
+    else:
+        await interaction.followup.send("Podcast wasn't added")
+
 
 @tree.command(name="play")
 async def play(interaction:discord.Interaction,name:str):
