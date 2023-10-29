@@ -7,10 +7,11 @@ class CustomAudio(FFmpegPCMAudio):
     def __init__(self, source: str | BufferedIOBase, name:str, *, executable: str = 'ffmpeg', pipe: bool = False, stderr: IO[str] | None = None, before_options: str | None = None, options: str | None = None) -> None:
         self.currentTimestamp = 0
         self.name = name
-        if(before_options.startswith("-ss")):
-            self.currentTimestamp = Converters.hourStrToMs(before_options[4:])
-        if(before_options.startswith("-ss") and before_options.endswith("ms")):
-            self.currentTimestamp = int(before_options[4:-2])
+        if before_options is not None:
+            if(before_options.startswith("-ss")):
+                self.currentTimestamp = Converters.hourStrToMs(before_options[4:])
+            if(before_options.startswith("-ss") and before_options.endswith("ms")):
+                self.currentTimestamp = int(before_options[4:-2])
         super().__init__(source, executable=executable, pipe=pipe, stderr=stderr, before_options=before_options, options=options)
 
     def read(self) -> bytes:

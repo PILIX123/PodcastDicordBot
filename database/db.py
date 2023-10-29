@@ -66,7 +66,7 @@ class Database():
             )
 
     def __addPodcast(self,userId:int,url:str) -> Insert:
-        url = "https://"+url if not url.startswith("https://") or not url.startswith("http://") else url
+        url = "https://"+url if not (url.startswith("https://") or url.startswith("http://")) else url
         reader = Reader(url)
         stmt = insert(Podcast).values(userId=userId,
                     url=url,
