@@ -43,6 +43,9 @@ async def add(interaction:discord.Interaction,url:str):
 
 @tree.command(name="play")
 async def play(interaction:discord.Interaction,name:str,episode_number:None|int=None,timestamp:None|str=None):
+    # TODO:
+    #     - Update this to make sure it plays to last episode played from the bot
+    #     - Create a model for episodes so that it saves the data for each episode of a podcast instead of in the podcast in general
     if interaction.guild.voice_client is None:
         await Utils.connect(interaction)
     title,url,lastTimeStamp = await db.getFromTitle(interaction.user.id,name)
