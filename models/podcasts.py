@@ -9,3 +9,4 @@ class Podcast(Base):
     title: Mapped[str] = mapped_column(nullable=False,unique=True)
     url: Mapped[str] = mapped_column(nullable=False)
     author: Mapped[str]
+    latestTimeStamp:Mapped[int]=mapped_column(nullable=True)

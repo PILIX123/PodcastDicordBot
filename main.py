@@ -3,6 +3,8 @@ from vault.vault import Vault
 from discord import app_commands
 from database.db import Database
 from rssreader.reader import Reader
+from utils.customAudio import CustomAudio
+from utils.utils import Utils
 
 vault = Vault()
 db = Database()
@@ -11,27 +13,23 @@ tree = app_commands.CommandTree(client)
 
 @tree.command(name="connect",description="connect to voice chat")
 async def connect(interaction:discord.Interaction):
-    in_voice = interaction.user.voice
-    if in_voice:
-        channel = interaction.user.voice.channel
-        await interaction.response.send_message(f"I connected to {channel.name}")
-        try:
-            await channel.connect()
-        except Exception as e:
-            print(f"Error connecting to voice channel: {e}")
-            await interaction.response.send_message("Error connecting to voice channel.")
-    else:
-        await interaction.response.send_message("cant connect no voice")
+    await Utils.connect(interaction)
+
+@tree.command(name="stop")
+async def stop(interaction:discord.Interaction):
+    await interaction.response.defer()
+    await Utils.stopSaveAudio(interaction,db)
+    await interaction.followup.send("audio stopped and timestamp saved")
 
 @tree.command(name="disconnect",description="disconnects from channel")
 async def disconnect(interaction:discord.Interaction):
+    await interaction.response.defer()
     if(interaction.guild.voice_client is not None):
-        if(interaction.guild.voice_client.is_playing()):
-            interaction.guild.voice_client.stop()
+        await Utils.stopSaveAudio(interaction,db)
         await interaction.guild.voice_client.disconnect()
-        await interaction.response.send_message("Disconnected")
+        await interaction.followup.send("Disconnected")
     else:
-        await interaction.response.send_message("Not currently connected to a voice channel.")
+        await interaction.response.send("Not currently connected to a voice channel.")
 
 @tree.command(name="add_podcast")
 async def add(interaction:discord.Interaction,url:str):
@@ -44,16 +42,16 @@ async def add(interaction:discord.Interaction,url:str):
 
 
 @tree.command(name="play")
-async def play(interaction:discord.Interaction,name:str):
-    await interaction.response.defer(thinking=True)
-    title,url = await db.getFromTitle(interaction.user.id,name)
+async def play(interaction:discord.Interaction,name:str,episode_number:None|int=None,timestamp:None|str=None):
+    if interaction.guild.voice_client is None:
+        await Utils.connect(interaction)
+    title,url,lastTimeStamp = await db.getFromTitle(interaction.user.id,name)
     reader = Reader(url)
-    source = discord.FFmpegPCMAudio(reader.getLatestEpisode())
-    if interaction.guild.voice_client is not None:
-        interaction.guild.voice_client.play(source)
-        await interaction.followup.send(f"Playing {title}")
-    else:
-        await interaction.followup.send("Connect me to a voice channel first")
+    num = len(reader.podcast.items)-episode_number if episode_number is not None else 0
+    options = (None if lastTimeStamp is None else f"-ss {lastTimeStamp}ms") if timestamp is None else f"-ss {timestamp}"
+    source = CustomAudio(reader.getEpisode(num),title,before_options=options)
+    interaction.guild.voice_client.play(source)
+    await interaction.followup.send(f"Playing {title}")        
 
 @client.event
 async def on_ready():

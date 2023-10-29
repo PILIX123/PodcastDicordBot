@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, create_async_pool_from_url
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, Insert
 from models.base import Base
@@ -27,10 +27,10 @@ class Database():
                 await session.commit()
                 return True
             except IntegrityError:
-                session.rollback()
+                await session.rollback()
                 return False
     
-    async def getFromTitle(self,userId:int,title:str) -> tuple[str,str]:
+    async def getFromTitle(self,userId:int,title:str) -> tuple[str,str,int]:
         async with self.asyncSession() as session:
             stmt = select(Podcast) \
                 .where(Podcast.userId == userId) \
@@ -38,7 +38,18 @@ class Database():
 
             result = await session.execute(stmt)
             pod = result.scalar()
-            return (pod.title,pod.url)
+            return (pod.title,pod.url,pod.latestTimeStamp)
+        
+    async def updatePodcast(self,userId:int,timestamp:int,title:str):
+            async with self.asyncSession() as session:
+                stmt = select(Podcast) \
+                    .where(Podcast.userId == userId) \
+                    .where(Podcast.title == title)
+                
+                result = await session.execute(stmt)
+                pod = result.scalar_one()
+                pod.latestTimeStamp = timestamp
+                await session.commit()
 
     def __addUserPodcast(self,session:AsyncSession,userId:int,url:str):
         url = "https://"+url if not url.startswith("https://") or not url.startswith("http://") else url
