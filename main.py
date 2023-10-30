@@ -54,8 +54,8 @@ async def play(interaction: discord.Interaction, name: str, episode_number: None
         await Utils.connect(interaction)
     title, url, lastTimeStamp = await db.getFromTitle(interaction.user.id, name)
     reader = Reader(url)
-    num = len(reader.podcast.items) - \
-        episode_number if episode_number is not None else 0
+    num = len(reader.podcast.items) - episode_number \
+        if episode_number is not None else 0
     options = (
         None if lastTimeStamp is None else f"-ss {lastTimeStamp}ms") if timestamp is None else f"-ss {timestamp}"
     source = CustomAudio(reader.getEpisode(num), title, before_options=options)
