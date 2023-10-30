@@ -10,7 +10,7 @@ class CustomAudio(FFmpegPCMAudio):
         if before_options is not None:
             if(before_options.startswith("-ss") and before_options.endswith("ms")):
                 self.currentTimestamp = int(before_options[4:-2])
-            if(before_options.startswith("-ss")):
+            elif(before_options.startswith("-ss")):
                 self.currentTimestamp = Converters.hourStrToMs(before_options[4:])
         super().__init__(source, executable=executable, pipe=pipe, stderr=stderr, before_options=before_options, options=options)
 
