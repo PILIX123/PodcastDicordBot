@@ -3,6 +3,7 @@ from models.base import Base
 from models.podcasts import Podcast
 from typing import List
 
+
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)

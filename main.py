@@ -11,30 +11,34 @@ db = Database()
 client = discord.Client(intents=discord.Intents.all())
 tree = app_commands.CommandTree(client)
 
-@tree.command(name="connect",description="connect to voice chat")
-async def connect(interaction:discord.Interaction):
+
+@tree.command(name="connect", description="connect to voice chat")
+async def connect(interaction: discord.Interaction):
     await Utils.connect(interaction)
 
+
 @tree.command(name="stop")
-async def stop(interaction:discord.Interaction):
+async def stop(interaction: discord.Interaction):
     await interaction.response.defer()
-    await Utils.stopSaveAudio(interaction,db)
+    await Utils.stopSaveAudio(interaction, db)
     await interaction.followup.send("audio stopped and timestamp saved")
 
-@tree.command(name="disconnect",description="disconnects from channel")
-async def disconnect(interaction:discord.Interaction):
+
+@tree.command(name="disconnect", description="disconnects from channel")
+async def disconnect(interaction: discord.Interaction):
     await interaction.response.defer()
-    if(interaction.guild.voice_client is not None):
-        await Utils.stopSaveAudio(interaction,db)
+    if (interaction.guild.voice_client is not None):
+        await Utils.stopSaveAudio(interaction, db)
         await interaction.guild.voice_client.disconnect()
         await interaction.followup.send("Disconnected")
     else:
         await interaction.response.send("Not currently connected to a voice channel.")
 
+
 @tree.command(name="add_podcast")
-async def add(interaction:discord.Interaction,url:str):
+async def add(interaction: discord.Interaction, url: str):
     await interaction.response.defer(thinking=True)
-    success = await db.add(db.asyncSession,interaction.user.id,url)
+    success = await db.add(db.asyncSession, interaction.user.id, url)
     if success:
         await interaction.followup.send("Podcast added")
     else:
@@ -42,19 +46,22 @@ async def add(interaction:discord.Interaction,url:str):
 
 
 @tree.command(name="play")
-async def play(interaction:discord.Interaction,name:str,episode_number:None|int=None,timestamp:None|str=None):
+async def play(interaction: discord.Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
     # TODO:
     #     - Update this to make sure it plays to last episode played from the bot
     #     - Create a model for episodes so that it saves the data for each episode of a podcast instead of in the podcast in general
     if interaction.guild.voice_client is None:
         await Utils.connect(interaction)
-    title,url,lastTimeStamp = await db.getFromTitle(interaction.user.id,name)
+    title, url, lastTimeStamp = await db.getFromTitle(interaction.user.id, name)
     reader = Reader(url)
-    num = len(reader.podcast.items)-episode_number if episode_number is not None else 0
-    options = (None if lastTimeStamp is None else f"-ss {lastTimeStamp}ms") if timestamp is None else f"-ss {timestamp}"
-    source = CustomAudio(reader.getEpisode(num),title,before_options=options)
+    num = len(reader.podcast.items) - \
+        episode_number if episode_number is not None else 0
+    options = (
+        None if lastTimeStamp is None else f"-ss {lastTimeStamp}ms") if timestamp is None else f"-ss {timestamp}"
+    source = CustomAudio(reader.getEpisode(num), title, before_options=options)
     interaction.guild.voice_client.play(source)
-    await interaction.followup.send(f"Playing {title}")        
+    await interaction.followup.send(f"Playing {title}")
+
 
 @client.event
 async def on_ready():
