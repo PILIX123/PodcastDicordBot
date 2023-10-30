@@ -52,13 +52,15 @@ async def play(interaction: discord.Interaction, name: str, episode_number: None
     #     - Create a model for episodes so that it saves the data for each episode of a podcast instead of in the podcast in general
     if interaction.guild.voice_client is None:
         await Utils.connect(interaction)
-    title, url, lastTimeStamp = await db.getFromTitle(interaction.user.id, name)
+    title, url, episode = await db.getFromTitle(interaction.user.id, name)
     reader = Reader(url)
+    epi = episode_number if episode_number is not None else episode if episode is not None else len(
+        reader.podcast.items)
     num = len(reader.podcast.items) - episode_number \
         if episode_number is not None else 0
-    options = (
-        None if lastTimeStamp is None else f"-ss {lastTimeStamp}ms") if timestamp is None else f"-ss {timestamp}"
-    source = CustomAudio(reader.getEpisode(num), title, before_options=options)
+    options = None if timestamp is None else f"-ss {timestamp}"
+    source = CustomAudio(reader.getEpisode(num), title,
+                         epi, before_options=options)
     interaction.guild.voice_client.play(source)
     await interaction.followup.send(f"Playing {title}")
 

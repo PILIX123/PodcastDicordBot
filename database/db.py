@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, Insert
 from models.base import Base
 from models.user import User
+from models.episode import Episode
 from models.podcasts import Podcast
 from rssreader.reader import Reader
 from sqlalchemy.dialects.sqlite import insert
@@ -40,7 +41,7 @@ class Database():
 
             result = await session.execute(stmt)
             pod = result.scalar()
-            return (pod.title, pod.url, pod.latestTimeStamp)
+            return (pod.title, pod.url, pod.lastEpisode)
 
     async def updatePodcast(self, userId: int, timestamp: int, title: str):
         async with self.asyncSession() as session:
@@ -53,10 +54,34 @@ class Database():
             pod.latestTimeStamp = timestamp
             await session.commit()
 
+    async def createEpisode(self, userId: int, title: str, timestamp: int):
+        async with self.asyncSession() as session:
+            stmt = select(Podcast) \
+                .where(Podcast.userId == userId) \
+                .where(Podcast.title == title)
+
+            result = await session.execute(stmt)
+            pod = result.scalar_one()
+
+            session.add(Episode(podcastId=pod.id,
+                        episodeNumber=1, timeStamp=timestamp))
+
+    async def updateEpisode(self, userId: int, title: str, episodeNum: int, timestamp: int):
+        async with self.asyncSession() as session:
+            stmt = select(Podcast)\
+                .where(Podcast.title == title).where(Podcast.userId == userId)\
+                # .where(Episode.episodeNumber == episodeNum)
+
+            result = await session.execute(stmt)
+            tt = result.scalars().all()
+            test = result.scalar()
+            0
+
     def __addUserPodcast(self, session: AsyncSession, userId: int, url: str):
         url = "https://" + \
-            url if not url.startswith(
-                "https://") or not url.startswith("http://") else url
+            url if not \
+            (url.startswith("https://") or url.startswith("http://")) \
+            else url
         reader = Reader(url)
 
         session.add(
@@ -64,18 +89,18 @@ class Database():
                 user_id=userId,
                 podcasts=[
                     Podcast(title=reader.podcast.title,
-                            url=url,
-                            author=reader.podcast.itunes_author_name)
+                            url=url)
                 ])
         )
 
     def __addPodcast(self, userId: int, url: str) -> Insert:
         url = "https://" + \
-            url if not (url.startswith("https://")
-                        or url.startswith("http://")) else url
+            url if not \
+            (url.startswith("https://") or url.startswith("http://")) \
+            else url
         reader = Reader(url)
         stmt = insert(Podcast).values(userId=userId,
                                       url=url,
-                                      title=reader.podcast.title,
-                                      author=reader.podcast.itunes_author_name).on_conflict_do_nothing(index_where=['title'])
+                                      title=reader.podcast.title
+                                      ).on_conflict_do_nothing(index_where=['title'])
         return stmt

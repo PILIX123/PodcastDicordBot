@@ -5,7 +5,11 @@ from discord import Interaction
 class Utils():
     async def stopSaveAudio(interaction: Interaction, db: Database):
         if (interaction.guild.voice_client.is_playing()):
-            await db.updatePodcast(interaction.user.id, interaction.guild.voice_client.source.currentTimestamp, interaction.guild.voice_client.source.name)
+            await db.updateEpisode(
+                interaction.user.id,
+                interaction.guild.voice_client.source.name,
+                interaction.guild.voice_client.source.episode,
+                interaction.guild.voice_client.source.currentTimestamp)
             interaction.guild.voice_client.stop()
 
     async def connect(interaction: Interaction):

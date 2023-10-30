@@ -5,9 +5,10 @@ from utils.converters import Converters
 
 
 class CustomAudio(FFmpegPCMAudio):
-    def __init__(self, source: str | BufferedIOBase, name: str, *, executable: str = 'ffmpeg', pipe: bool = False, stderr: IO[str] | None = None, before_options: str | None = None, options: str | None = None) -> None:
+    def __init__(self, source: str | BufferedIOBase, name: str, episode: int, *, executable: str = 'ffmpeg', pipe: bool = False, stderr: IO[str] | None = None, before_options: str | None = None, options: str | None = None) -> None:
         self.currentTimestamp = 0
         self.name = name
+        self.episode = episode
         if before_options is not None:
             if (before_options.startswith("-ss") and before_options.endswith("ms")):
                 self.currentTimestamp = int(before_options[4:-2])

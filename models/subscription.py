@@ -1,10 +1,10 @@
 from models.base import Base
-from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey
 
 
-class Episode(Base):
-    __tablename__ = "episodes"
+class Subcriptions(Base):
+    __tablename__ = "subscriptions"
     id: Mapped[int] = mapped_column(primary_key=True)
+    userId: Mapped[int] = mapped_column(ForeignKey("users.id"))
     podcastId: Mapped[int] = mapped_column(ForeignKey("podcasts.id"))
-    episodeNumber: Mapped[int]
