@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from models.base import Base
 from models.user import User
 from models.episode import Episode
