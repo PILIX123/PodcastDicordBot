@@ -8,6 +8,5 @@ from typing import List
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
-    discordId: Mapped[int] = mapped_column(nullable=False)
     subcriptions: Mapped[List[Subcriptions]] = relationship()
     playstates: Mapped[List[Playstate]] = relationship()
