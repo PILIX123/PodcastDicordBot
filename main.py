@@ -1,6 +1,5 @@
-from discord import Intents, Interaction, Client
+from discord import Intents, Interaction, Client, app_commands
 from vault.vault import Vault
-from discord import app_commands
 from database.db import Database
 from rssreader.reader import Reader
 from utils.customAudio import CustomAudio
