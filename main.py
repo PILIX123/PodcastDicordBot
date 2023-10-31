@@ -1,4 +1,4 @@
-import discord
+from discord import Intents, Interaction, Client
 from vault.vault import Vault
 from discord import app_commands
 from database.db import Database
@@ -11,17 +11,17 @@ from messages.messages import Messages
 
 vault = Vault()
 db = Database()
-client = discord.Client(intents=discord.Intents.all())
+client = Client(intents=Intents.all())
 tree = app_commands.CommandTree(client)
 
 
 @tree.command(name="connect", description="connect to voice chat")
-async def connect(interaction: discord.Interaction):
+async def connect(interaction: Interaction):
     await Utils.connect(interaction)
 
 
 @tree.command(name="stop")
-async def stop(interaction: discord.Interaction):
+async def stop(interaction: Interaction):
     await interaction.response.defer()
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db)
@@ -30,7 +30,7 @@ async def stop(interaction: discord.Interaction):
 
 
 @tree.command(name="disconnect", description="disconnects from channel")
-async def disconnect(interaction: discord.Interaction):
+async def disconnect(interaction: Interaction):
     await interaction.response.defer()
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db)
@@ -41,7 +41,7 @@ async def disconnect(interaction: discord.Interaction):
 
 
 @tree.command(name="subscribe")
-async def subscribe(interaction: discord.Interaction, url: str):
+async def subscribe(interaction: Interaction, url: str):
     await interaction.response.defer(thinking=True)
     url = "https://" + \
         url if not \
@@ -66,7 +66,7 @@ async def subscribe(interaction: discord.Interaction, url: str):
 
 
 @tree.command(name="unsubscribe")
-async def unsubscribe(interaction: discord.Interaction, title: str):
+async def unsubscribe(interaction: Interaction, title: str):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(interaction.user.id)
     podcast = await db.getPodcastFromTitle(title)
@@ -76,7 +76,7 @@ async def unsubscribe(interaction: discord.Interaction, title: str):
 
 
 @tree.command(name="play")
-async def play(interaction: discord.Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
+async def play(interaction: Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
     await interaction.response.defer(thinking=True)
     podcast = await db.getPodcastFromTitle(name)
     user = await db.getUser(interaction.user.id)
