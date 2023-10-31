@@ -43,6 +43,7 @@ async def disconnect(interaction: Interaction):
 
 
 @tree.command(name="subscribe", description="Subscribes the user to the given RSS feed")
+@app_commands.describe(url="URL pointing to the rss feed")
 async def subscribe(interaction: Interaction, url: str):
     await interaction.response.defer(thinking=True)
     url = "https://" + \
@@ -68,16 +69,20 @@ async def subscribe(interaction: Interaction, url: str):
 
 
 @tree.command(name="unsubscribe", description="Unsubscribes the user from the RSS feed")
-async def unsubscribe(interaction: Interaction, title: str):
+@app_commands.describe(name="**RESPECT CAPITALIZATION** Name of the podcast")
+async def unsubscribe(interaction: Interaction, name: str):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(interaction.user.id)
-    podcast = await db.getPodcastFromTitle(title)
+    podcast = await db.getPodcastFromTitle(name)
     subscription = await db.getSubscriptionUser(user.id, podcast.id)
     await db.deleteSubscription(subscription)
-    await interaction.followup.send(f"Unsubscribed from {title}")
+    await interaction.followup.send(f"Unsubscribed from {name}")
 
 
-@tree.command(name="play", description="Plays the podcast with the given name, with the option of chosing the episode and/or timestamp you want to start at.")
+@tree.command(name="play", description="Plays the podcast with the given name.")
+@app_commands.describe(name="**RESPECT CAPITALIZATION** Name of the podcast",
+                       episode_number="The number of the episode wanted",
+                       timestamp="**`HH:MM:SS` format only** Timestamp to start the episode at")
 async def play(interaction: Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
     await interaction.response.defer(thinking=True)
     podcast = await db.getPodcastFromTitle(name)
