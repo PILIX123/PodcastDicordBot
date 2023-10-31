@@ -142,17 +142,17 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
 async def help(interaction: Interaction, command: CommandEnum):
     match(command):
         case CommandEnum.Connect:
-            await Utils.sendResoponseMessage(Description.Connect)
+            await Utils.sendResponseMessage(interaction, Description.Connect)
         case CommandEnum.Disconnect:
-            await Utils.sendResoponseMessage(Description.Disconnect)
+            await Utils.sendResponseMessage(interaction, Description.Disconnect)
         case CommandEnum.Stop:
-            await Utils.sendResoponseMessage(Description.Stop)
+            await Utils.sendResponseMessage(interaction, Description.Stop)
         case CommandEnum.Subscribe:
-            await Utils.sendResponseMessage(Description.Subscribe)
+            await Utils.sendResponseMessage(interaction, Description.Subscribe)
         case CommandEnum.Unsubscribe:
-            await Utils.sendResponseMessage(Description.Unsubscribe)
+            await Utils.sendResponseMessage(interaction, Description.Unsubscribe)
         case CommandEnum.Play:
-            await Utils.sendResoponseMessage(Description.Play)
+            await Utils.sendResponseMessage(interaction, Description.Play)
 
 
 @client.event
