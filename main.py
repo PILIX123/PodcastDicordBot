@@ -77,9 +77,6 @@ async def unsubscribe(interaction: discord.Interaction, title: str):
 
 @tree.command(name="play")
 async def play(interaction: discord.Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
-    # TODO:
-    #     - Update this to make sure it plays to last episode played from the bot
-    #     - Create a model for episodes so that it saves the data for each episode of a podcast instead of in the podcast in general
     await interaction.response.defer(thinking=True)
     podcast = await db.getPodcastFromTitle(name)
     user = await db.getUser(interaction.user.id)
