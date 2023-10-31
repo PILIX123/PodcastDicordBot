@@ -4,3 +4,4 @@ class Messages():
     SubscriptionNotFound = "No subscription found for this podcast and user"
     FormatError = "The format for the timestamp is `hh:mm:ss`"
     NotConnected = "You are not connected to a voice channel"
+    AudioSaved = "The audio stream was stopped and your current timestamp was saved"

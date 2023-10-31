@@ -17,21 +17,21 @@ client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 
-@tree.command(name="connect", description="connect to voice chat")
+@tree.command(name="connect", description="Connects to a voice channel")
 async def connect(interaction: Interaction):
     await Utils.connect(interaction)
 
 
-@tree.command(name="stop")
+@tree.command(name="stop", description="Stops audio")
 async def stop(interaction: Interaction):
     await interaction.response.defer()
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db)
-        await interaction.followup.send("audio stopped and timestamp saved")
+        await interaction.followup.send(Messages.AudioSaved)
     await interaction.followup.send(Messages.NotConnected)
 
 
-@tree.command(name="disconnect", description="disconnects from channel")
+@tree.command(name="disconnect", description="Disconnects from a voice channel")
 async def disconnect(interaction: Interaction):
     await interaction.response.defer()
     if (interaction.guild.voice_client is not None):
@@ -42,7 +42,7 @@ async def disconnect(interaction: Interaction):
         await interaction.response.send("Not currently connected to a voice channel.")
 
 
-@tree.command(name="subscribe")
+@tree.command(name="subscribe", description="Subscribes the user to the given RSS feed")
 async def subscribe(interaction: Interaction, url: str):
     await interaction.response.defer(thinking=True)
     url = "https://" + \
@@ -67,7 +67,7 @@ async def subscribe(interaction: Interaction, url: str):
         await interaction.followup.send("Podcast wasn't added")
 
 
-@tree.command(name="unsubscribe")
+@tree.command(name="unsubscribe", description="Unsubscribes the user from the RSS feed")
 async def unsubscribe(interaction: Interaction, title: str):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(interaction.user.id)
@@ -77,7 +77,7 @@ async def unsubscribe(interaction: Interaction, title: str):
     await interaction.followup.send(f"Unsubscribed from {title}")
 
 
-@tree.command(name="play")
+@tree.command(name="play", description="Plays the podcast with the given name, with the option of chosing the episode and/or timestamp you want to start at.")
 async def play(interaction: Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
     await interaction.response.defer(thinking=True)
     podcast = await db.getPodcastFromTitle(name)
