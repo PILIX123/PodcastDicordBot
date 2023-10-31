@@ -10,7 +10,10 @@ from messages.messages import Messages
 
 vault = Vault()
 db = Database()
-client = Client(intents=Intents.all())
+intents = Intents.none()
+intents.guilds = True
+intents.voice_states = True
+client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 
