@@ -20,3 +20,6 @@ class Utils():
                 await interaction.response.send_message("Error connecting to voice channel.")
         else:
             await interaction.response.send_message("Cannot connect you are not connected to a voice channel")
+
+    async def sendResponseMessage(interaction: Interaction, msg: str):
+        await interaction.response.send_message(msg)

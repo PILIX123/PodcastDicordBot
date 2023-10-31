@@ -6,7 +6,8 @@ from utils.customAudio import CustomAudio
 from utils.utils import Utils
 from utils.converters import Converters
 from messages.messages import Messages
-
+from messages.descriptions import Description
+from enums.enums import CommandEnum
 
 vault = Vault()
 db = Database()
@@ -134,6 +135,24 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
 
     interaction.guild.voice_client.play(source)
     await interaction.followup.send(f"Playing {name}")
+
+
+@tree.command(name="help", description="Explains the use of the commands")
+@app_commands.describe(command="Name of the command you want help with")
+async def help(interaction: Interaction, command: CommandEnum):
+    match(command):
+        case CommandEnum.Connect:
+            await Utils.sendResoponseMessage(Description.Connect)
+        case CommandEnum.Disconnect:
+            await Utils.sendResoponseMessage(Description.Disconnect)
+        case CommandEnum.Stop:
+            await Utils.sendResoponseMessage(Description.Stop)
+        case CommandEnum.Subscribe:
+            await Utils.sendResponseMessage(Description.Subscribe)
+        case CommandEnum.Unsubscribe:
+            await Utils.sendResponseMessage(Description.Unsubscribe)
+        case CommandEnum.Play:
+            await Utils.sendResoponseMessage(Description.Play)
 
 
 @client.event
