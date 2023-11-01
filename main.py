@@ -8,6 +8,8 @@ from utils.converters import Converters
 from messages.messages import Messages
 from messages.descriptions import Description
 from enums.enums import CommandEnum
+from pyPodcastParser.Podcast import Podcast
+from requests import get
 
 vault = Vault()
 db = Database()
@@ -52,7 +54,7 @@ async def subscribe(interaction: Interaction, url: str):
         (url.startswith("https://") or url.startswith("http://")) \
         else url
 
-    reader = Reader(url)
+    reader = Reader(Podcast(get(url)))
     user = await db.getUser(interaction.user.id)
     podcast = await db.getPodcastFromTitle(reader.podcast.title)
     if (user is None):
@@ -104,7 +106,7 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
         await interaction.followup.send(Messages.PodcastNotFound)
         return
 
-    reader = Reader(podcast.url)
+    reader = Reader(Podcast(get(podcast.url)))
 
     subscription = await db.getSubscriptionUser(user.id, podcast.id)
     if subscription is None:
