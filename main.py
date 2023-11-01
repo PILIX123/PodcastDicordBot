@@ -71,6 +71,23 @@ async def subscribe(interaction: Interaction, url: str):
         await interaction.followup.send("Podcast wasn't added")
 
 
+@tree.command(name="list", description="List all podcast you are subscribed to")
+async def listing(interaction: Interaction):
+    await interaction.response.defer(thinking=True)
+    user = await db.getUser(interaction.user.id)
+    if user is None:
+        await interaction.followup.send(Messages.UserNotFound)
+        return
+
+    ids = [s.id for s in user.subscriptions]
+    podcasts = await db.getPodcastBulk(ids)
+    names = [f"- {p.title}" for p in podcasts]
+    nameL = """  
+""".join(names)
+    await interaction.followup.send(f"""You are subscribed to:  
+{nameL}""")
+
+
 @tree.command(name="unsubscribe", description="Unsubscribes the user from the RSS feed")
 @app_commands.describe(name="**RESPECT CAPITALIZATION** Name of the podcast")
 async def unsubscribe(interaction: Interaction, name: str):

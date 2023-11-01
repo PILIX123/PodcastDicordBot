@@ -44,7 +44,7 @@ To subscribe to a podcast, use the following command:
 Here's what this means:
 
 - `<podcast_url>` (Required): Specify the URL of the podcast you want to subscribe to. The url does not need to start with "http://" or "https://"  
-The url needs to point to an [RSS feed](https://rss.com/blog/how-do-rss-feeds-work/) is.  
+The url needs to point to an [RSS feed](https://rss.com/blog/how-do-rss-feeds-work/).  
 On your favorite podcast page there should be a logo similar to this <:rss:1169062226448093194> copy the link that is given and paste it.
 ### Example
 

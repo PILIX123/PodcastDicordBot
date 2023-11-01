@@ -1,10 +1,11 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
+from sqlalchemy.orm import lazyload
 from models.base import Base
 from models.user import User
 from models.episode import Episode
 from models.podcasts import Podcast
-from models.subscription import Subcriptions
+from models.subscription import Subscriptions
 from models.playstate import Playstate
 
 
@@ -20,7 +21,10 @@ class Database():
         async with self.asyncSession() as session:
             stmt = select(User).where(User.id == userId)
             result = await session.execute(stmt)
-            return result.scalar_one_or_none()
+            user = result.scalar_one_or_none()
+            await user.awaitable_attrs.subscriptions
+            await user.awaitable_attrs.playstates
+            return user
 
     async def addUser(self, userId: int) -> User:
         async with self.asyncSession() as session:
@@ -42,6 +46,12 @@ class Database():
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
+    async def getPodcastBulk(self, ids: list[int]) -> list[Podcast]:
+        async with self.asyncSession() as session:
+            stmt = select(Podcast).filter(Podcast.id.in_(ids))
+            result = await session.execute(stmt)
+            return result.scalars()
+
     async def addPodcast(self, url: str, title: str) -> Podcast:
         async with self.asyncSession() as session:
             async with session.begin():
@@ -50,29 +60,29 @@ class Database():
                 await session.flush()
                 return p
 
-    async def getSubscriptionUser(self, userId: int, podcastId: int) -> Subcriptions | None:
+    async def getSubscriptionUser(self, userId: int, podcastId: int) -> Subscriptions | None:
         async with self.asyncSession() as session:
-            stmt = select(Subcriptions).where(Subcriptions.userId == userId).where(
-                Subcriptions.podcastId == podcastId)
+            stmt = select(Subscriptions).where(Subscriptions.userId == userId).where(
+                Subscriptions.podcastId == podcastId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getSubscription(self, subscriptionId: int) -> Subcriptions:
+    async def getSubscription(self, subscriptionId: int) -> Subscriptions:
         async with self.asyncSession() as session:
-            stmt = select(Subcriptions).where(
-                Subcriptions.id == subscriptionId)
+            stmt = select(Subscriptions).where(
+                Subscriptions.id == subscriptionId)
             result = await session.execute(stmt)
             return result.scalar_one()
 
-    async def addSubscription(self, userId: int, podcastId: int) -> Subcriptions:
+    async def addSubscription(self, userId: int, podcastId: int) -> Subscriptions:
         async with self.asyncSession() as session:
             async with session.begin():
-                s = Subcriptions(userId=userId, podcastId=podcastId)
+                s = Subscriptions(userId=userId, podcastId=podcastId)
                 session.add(s)
                 await session.flush()
                 return s
 
-    async def deleteSubscription(self, subscription: Subcriptions):
+    async def deleteSubscription(self, subscription: Subscriptions):
         async with self.asyncSession() as session:
             await session.delete(subscription)
             await session.commit()
