@@ -54,7 +54,7 @@ async def subscribe(interaction: Interaction, url: str):
         (url.startswith("https://") or url.startswith("http://")) \
         else url
 
-    reader = Reader(Podcast(get(url)))
+    reader = Reader(Podcast(get(url).content))
     user = await db.getUser(interaction.user.id)
     podcast = await db.getPodcastFromTitle(reader.podcast.title)
     if (user is None):
@@ -106,7 +106,7 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
         await interaction.followup.send(Messages.PodcastNotFound)
         return
 
-    reader = Reader(Podcast(get(podcast.url)))
+    reader = Reader(Podcast(get(podcast.url).content))
 
     subscription = await db.getSubscriptionUser(user.id, podcast.id)
     if subscription is None:

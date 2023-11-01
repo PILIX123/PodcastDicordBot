@@ -1,5 +1,6 @@
 from database.db import Database
 from discord import Interaction
+from messages.messages import Messages
 
 
 class Utils():
@@ -19,7 +20,7 @@ class Utils():
                 print(f"Error connecting to voice channel: {e}")
                 await interaction.response.send_message("Error connecting to voice channel.")
         else:
-            await interaction.response.send_message("Cannot connect you are not connected to a voice channel")
+            await interaction.response.send_message(Messages.NotConnected)
 
     async def sendResponseMessage(interaction: Interaction, msg: str):
         await interaction.response.send_message(msg)
