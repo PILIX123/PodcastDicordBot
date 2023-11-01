@@ -3,7 +3,7 @@ class Description():
 
 To use the command, follow this format:
 
-`/play name:<podcast_name> episode_number:[episode_number] timestamp:[timestamp]`
+</play:1169005927714787430> `name:<podcast_name> episode_number:[episode_number] timestamp:[timestamp]`
 
 Here's what each part of the command means:  
     - `<podcast_name>` (Required): Specify the name of the podcast you want to play.  
@@ -22,7 +22,7 @@ Here's what each part of the command means:
 ### How to Use the Command
 
 To unsubscribe from a podcast, use the following command:
-`/unsubscribe name:<podcast_name>`
+</unsubscribe:1168995344412057673> `name:<podcast_name>`
 
 Here's what this means:
 
@@ -39,15 +39,29 @@ Here's what this means:
 ### How to Use the Command
 
 To subscribe to a podcast, use the following command:
-`/subscribe url: <podcast_url>`
+</subscribe:1168995344412057672> `url: <podcast_url>`
 
 Here's what this means:
 
-- `<podcast_url>` (Required): Specify the URL of the podcast you want to subscribe to. The url does not need to start with "http://" or "https://"
-
+- `<podcast_url>` (Required): Specify the URL of the podcast you want to subscribe to. The url does not need to start with "http://" or "https://"  
+The url needs to point to an [RSS feed](https://rss.com/blog/how-do-rss-feeds-work/) is.  
+On your favorite podcast page there should be a logo similar to this <:rss:1169062226448093194> copy the link that is given and paste it.
 ### Example
 
 - `/subscribe url: https://example-podcast.com` : Subscribes you to the podcast hosted at "https://example-podcast.com."
+"""
+
+    Connect = """
+## Connect to Voice Channel
+
+### How to Use the Command
+
+To connect to a voice channel, use the following command:
+</connect:1158674334777344050>
+
+### Example
+
+- `/connect`: Initiates a connection to a voice channel.
 """
 
     Disconnect = """
@@ -56,33 +70,22 @@ Here's what this means:
 ### How to Use the Command
 
 To disconnect from the voice channel, use the following command:
-`/disconnect`
+</disconnect:1158677824106938399>
 
 ### Example
 
 - `/disconnect`: Disconnects from the current voice channel if connected.
 """
+
     Stop = """
 ## Stop Audio Playback
 
 ### How to Use the Command
 
 To stop audio playback and save the audio file, use the following command:
-`/stop`
+</stop:1168136268132130917>
 
 ### Example
 
 - `/stop`: Stops audio playback, saves the audio file, and notifies the user.
-"""
-    Connect = """
-## Connect to Voice Channel
-
-### How to Use the Command
-
-To connect to a voice channel, use the following command:
-`/connect`
-
-### Example
-
-- `/connect`: Initiates a connection to a voice channel.
 """
