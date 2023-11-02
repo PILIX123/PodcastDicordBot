@@ -110,6 +110,12 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
     episode = None
     playstate = None
     timestampms = None
+    # TODO add stop audio before starting again
+    # TODO /ff to skip 30 sec ahead and /bw to rewind 15 sec
+    # TODO:
+    # Pouvoir display le nom de l'épisode avec le message de confirmation de jeu
+    # Une commande fast-forward et back-ward
+    # add completed to playstate, ask user to replay
 
     if timestamp is not None:
         if len(timestamp.split(":")) != 3:

@@ -22,8 +22,9 @@ class Database():
             stmt = select(User).where(User.id == userId)
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
-            await user.awaitable_attrs.subscriptions
-            await user.awaitable_attrs.playstates
+            if user is not None:
+                await user.awaitable_attrs.subscriptions
+                await user.awaitable_attrs.playstates
             return user
 
     async def addUser(self, userId: int) -> User:
