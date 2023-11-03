@@ -13,14 +13,22 @@ class Utils():
         in_voice = interaction.user.voice
         if in_voice:
             channel = interaction.user.voice.channel
-            await interaction.response.send_message(f"I connected to {channel.name}") if interaction.response.type is None else await interaction.followup.send(f"I connected to {channel.name}")
+            if interaction.response.type is None:
+                await interaction.response.send_message(Messages.ConnectedTo(channel.name))
+            else:
+                await interaction.followup.send(Messages.ConnectedTo(channel.name))
             try:
                 await channel.connect()
             except Exception as e:
-                print(f"Error connecting to voice channel: {e}")
-                await interaction.response.send_message("Error connecting to voice channel.")
+                if interaction.response.type is None:
+                    await interaction.response.send_message(Messages.ErrorConnecting)
+                    return
+                await interaction.followup.send(Messages.ErrorConnecting)
         else:
-            await interaction.response.send_message(Messages.NotConnected)
+            if interaction.response.type is None:
+                await interaction.response.send_message(Messages.NotConnected)
+                return
+            await interaction.followup.send(Messages.NotConnected)
 
     async def sendResponseMessage(interaction: Interaction, msg: str):
         await interaction.response.send_message(msg)

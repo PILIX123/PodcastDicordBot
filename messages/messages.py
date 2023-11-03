@@ -5,3 +5,5 @@ class Messages():
     FormatError = "The format for the timestamp is `hh:mm:ss`"
     NotConnected = "You are not connected to a voice channel"
     AudioSaved = "The audio stream was stopped and your current timestamp was saved"
+    ErrorConnecting = "Error connecting to voice channel."
+    def ConnectedTo(n): return f"I connected to {n}"

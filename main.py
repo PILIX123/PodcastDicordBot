@@ -144,9 +144,8 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
     if episode_number is None:
         episode_number = len(reader.podcast.items)
 
-    if user.lastPodcastId:
-        if podcast.id == user.lastPodcastId:
-            episode = await db.getEpisode(user.lastEpisodeId)
+    if podcast.id == user.lastPodcastId:
+        episode = await db.getEpisode(user.lastEpisodeId)
     if episode is None:
         episode = await db.getEpisodePodcastNumber(podcast.id, episode_number)
     if episode is not None:
@@ -160,6 +159,8 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
                              title=reader.getEpisodeTitle(reverseNumber))
         episode = await db.addEpisode(episodeDto)
 
+    user.lastEpisodeId = episode.id
+    user.lastPodcastId = podcast.id
     await db.updateUser(user)
     if playstate is None:
         playstate = await db.addPlaystate(Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
@@ -175,7 +176,9 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
         reverseNumber), acutalTimestamp, playstate.id, before_options=options)
 
     interaction.guild.voice_client.play(source)
-    await interaction.followup.send(f"Playing {name}  \nEpisode {episode.episodeNumber}: {episode.title}")
+    episodeNumberName = episode.title if str(
+        episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
+    await interaction.followup.send(f"Playing {name}  \nEpisode {episodeNumberName}")
 
 
 @tree.command(name="help", description="Explains the use of the commands")
