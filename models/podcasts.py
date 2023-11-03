@@ -10,6 +10,5 @@ class Podcast(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(nullable=False, unique=True)
     url: Mapped[str] = mapped_column(nullable=False)
-    lastEpisode: Mapped[int] = mapped_column(nullable=True)
     subscriptions: Mapped[List[Subscriptions]] = relationship()
     episode: Mapped[List[Episode]] = relationship()

@@ -10,6 +10,10 @@ from messages.descriptions import Description
 from enums.enums import CommandEnum
 from pyPodcastParser.Podcast import Podcast
 from requests import get
+from models.episode import Episode
+from models.subscription import Subscriptions
+from models.playstate import Playstate
+from models.podcasts import Podcast as PodcastDto
 
 vault = Vault()
 db = Database()
@@ -61,9 +65,9 @@ async def subscribe(interaction: Interaction, url: str):
         user = await db.addUser(interaction.user.id)
 
     if podcast is None:
-        podcast = await db.addPodcast(url, reader.podcast.title)
+        podcast = await db.addPodcast(PodcastDto(url=url, title=reader.podcast.title))
 
-    subscription = await db.addSubscription(user.id, podcast.id)
+    subscription = await db.addSubscription(Subscriptions(userId=user.id, podcastId=podcast.id))
 
     if subscription:
         await interaction.followup.send("Podcast added")
@@ -116,6 +120,7 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
     # Pouvoir display le nom de l'épisode avec le message de confirmation de jeu
     # Une commande fast-forward et back-ward
     # add completed to playstate, ask user to replay
+    # add error handling
 
     if timestamp is not None:
         if len(timestamp.split(":")) != 3:
@@ -138,28 +143,39 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
 
     if episode_number is None:
         episode_number = len(reader.podcast.items)
-    if episode_number is not None:
+
+    if user.lastPodcastId:
+        if podcast.id == user.lastPodcastId:
+            episode = await db.getEpisode(user.lastEpisodeId)
+    if episode is None:
         episode = await db.getEpisodePodcastNumber(podcast.id, episode_number)
     if episode is not None:
         playstate = await db.getPlaystateUserEpisode(user.id, episode.id)
 
+    reverseNumber = len(reader.podcast.items)-episode_number
+
     if episode is None:
-        episode = await db.addEpisode(episode_number, podcast.id)
+        episodeDto = Episode(episodeNumber=episode_number,
+                             podcastId=podcast.id,
+                             title=reader.getEpisodeTitle(reverseNumber))
+        episode = await db.addEpisode(episodeDto)
 
+    await db.updateUser(user)
     if playstate is None:
-        playstate = await db.addPlaystate(episode.id, (0 if timestampms is None else timestampms), user.id)
+        playstate = await db.addPlaystate(Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
 
+    user.lastEpisodeId = episode.id
+    user.lastPodcastId = podcast.id
     if interaction.guild.voice_client is None:
         await Utils.connect(interaction)
 
     acutalTimestamp = playstate.timestamp if timestampms is None else timestampms
     options = f"-ss {acutalTimestamp}ms"
-    reverseNumber = len(reader.podcast.items)-episode.episodeNumber
-    source = CustomAudio(reader.getEpisode(
+    source = CustomAudio(reader.getEpisodeUrl(
         reverseNumber), acutalTimestamp, playstate.id, before_options=options)
 
     interaction.guild.voice_client.play(source)
-    await interaction.followup.send(f"Playing {name}")
+    await interaction.followup.send(f"Playing {name}  \nEpisode {episode.episodeNumber}: {episode.title}")
 
 
 @tree.command(name="help", description="Explains the use of the commands")

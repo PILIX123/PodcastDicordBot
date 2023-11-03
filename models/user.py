@@ -10,3 +10,5 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     subscriptions: Mapped[List[Subscriptions]] = relationship()
     playstates: Mapped[List[Playstate]] = relationship()
+    lastPodcastId: Mapped[int] = mapped_column(nullable=True)
+    lastEpisodeId: Mapped[int] = mapped_column(nullable=True)

@@ -35,6 +35,13 @@ class Database():
                 await session.flush()
                 return u
 
+    async def updateUser(self, user: User) -> None:
+        async with self.asyncSession() as session:
+            async with session.begin():
+                session.add(user)
+                await session.flush()
+                user
+
     async def getPodcast(self, podcastId: int) -> Podcast | None:
         async with self.asyncSession() as session:
             stmt = select(Podcast).where(Podcast.id == podcastId)
@@ -53,10 +60,10 @@ class Database():
             result = await session.execute(stmt)
             return result.scalars()
 
-    async def addPodcast(self, url: str, title: str) -> Podcast:
+    async def addPodcast(self, podcast: Podcast) -> Podcast:
         async with self.asyncSession() as session:
             async with session.begin():
-                p = Podcast(url=url, title=title)
+                p = podcast
                 session.add(p)
                 await session.flush()
                 return p
@@ -75,10 +82,10 @@ class Database():
             result = await session.execute(stmt)
             return result.scalar_one()
 
-    async def addSubscription(self, userId: int, podcastId: int) -> Subscriptions:
+    async def addSubscription(self, subscription: Subscriptions) -> Subscriptions:
         async with self.asyncSession() as session:
             async with session.begin():
-                s = Subscriptions(userId=userId, podcastId=podcastId)
+                s = subscription
                 session.add(s)
                 await session.flush()
                 return s
@@ -101,10 +108,10 @@ class Database():
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def addEpisode(self, episodeNumber: int, podcastId: int) -> Episode:
+    async def addEpisode(self, episode: Episode) -> Episode:
         async with self.asyncSession() as session:
             async with session.begin():
-                e = Episode(podcastId=podcastId, episodeNumber=episodeNumber)
+                e = episode
                 session.add(e)
                 await session.flush()
                 return e
@@ -122,11 +129,10 @@ class Database():
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def addPlaystate(self, episodeId: int, timestamp: int, userId: int) -> Playstate:
+    async def addPlaystate(self, playstate: Playstate) -> Playstate:
         async with self.asyncSession() as session:
             async with session.begin():
-                p = Playstate(userId=userId, episodeId=episodeId,
-                              timestamp=timestamp)
+                p = playstate
                 session.add(p)
                 await session.flush()
                 return p

@@ -8,3 +8,4 @@ class Episode(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     podcastId: Mapped[int] = mapped_column(ForeignKey("podcasts.id"))
     episodeNumber: Mapped[int]
+    title: Mapped[str] = mapped_column(default="1")

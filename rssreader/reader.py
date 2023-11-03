@@ -10,6 +10,7 @@ class Podcast(Protocol):  # pragma: no cover
 class Items(Protocol):  # pragma: no cover
     def __init__(self) -> None:
         self.enclosure_url: str
+        self.title: str
         super().__init__()
 
 
@@ -17,5 +18,8 @@ class Reader:
     def __init__(self, podcast: Podcast) -> None:
         self.podcast = podcast
 
-    def getEpisode(self, episodeNum: int) -> str:
+    def getEpisodeUrl(self, episodeNum: int) -> str:
         return self.podcast.items[episodeNum].enclosure_url
+
+    def getEpisodeTitle(self, episodeNum: int) -> str:
+        return self.podcast.items[episodeNum].title
