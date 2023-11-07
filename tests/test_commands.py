@@ -701,6 +701,8 @@ async def test_play_lastPodcastId(mocker:MockerFixture):
     get = mocker.patch("commands.commands.get")
     podcastMock = mocker.patch("commands.commands.Podcast")
 
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
 
     reader = mocker.patch("commands.commands.Reader")
     reader.return_value.podcast.title = "TEST_TITLE"
