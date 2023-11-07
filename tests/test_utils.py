@@ -43,12 +43,12 @@ class MockDb():
 
 @mark.asyncio
 async def test_stopSaveAudio() -> None:
-    await Utils.stopSaveAudio(MockInteraction(), MockDb())
+    await Utils.stopSaveAudio(MockInteraction(), MockDb(), "")
 
 
 @mark.asyncio
 async def test_stopSaveAudio_NotPlaying() -> None:
-    await Utils.stopSaveAudio(MockInteraction(False), MockDb())
+    await Utils.stopSaveAudio(MockInteraction(False), MockDb(), "")
 
 
 @mark.asyncio

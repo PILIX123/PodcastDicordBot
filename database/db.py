@@ -1,24 +1,16 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import lazyload
-from models.base import Base
 from models.user import User
 from models.episode import Episode
 from models.podcasts import Podcast
 from models.subscription import Subscriptions
 from models.playstate import Playstate
+from models.base import Base
 
 
 class Database():
-    async def init(self) -> None:
-        engine = create_async_engine(
-            "sqlite+aiosqlite:///list.sqlite", echo=True)
-        self.asyncSession = async_sessionmaker(engine, expire_on_commit=False)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    async def getUser(self, userId: int) -> User | None:
-        async with self.asyncSession() as session:
+    async def getUser(self, async_session: async_sessionmaker[AsyncSession], userId: int) -> User | None:
+        async with async_session() as session:
             stmt = select(User).where(User.id == userId)
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
@@ -27,118 +19,118 @@ class Database():
                 await user.awaitable_attrs.playstates
             return user
 
-    async def addUser(self, userId: int) -> User:
-        async with self.asyncSession() as session:
+    async def addUser(self, async_session: async_sessionmaker[AsyncSession], userId: int) -> User:
+        async with async_session() as session:
             async with session.begin():
                 u = User(id=userId)
                 session.add(u)
                 await session.flush()
                 return u
 
-    async def updateUser(self, user: User) -> None:
-        async with self.asyncSession() as session:
+    async def updateUser(self, async_session: async_sessionmaker[AsyncSession], user: User) -> None:
+        async with async_session() as session:
             async with session.begin():
                 session.add(user)
                 await session.flush()
                 user
 
-    async def getPodcast(self, podcastId: int) -> Podcast | None:
-        async with self.asyncSession() as session:
+    async def getPodcast(self, async_session: async_sessionmaker[AsyncSession], podcastId: int) -> Podcast | None:
+        async with async_session() as session:
             stmt = select(Podcast).where(Podcast.id == podcastId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getPodcastFromTitle(self, title: str) -> Podcast | None:
-        async with self.asyncSession() as session:
+    async def getPodcastFromTitle(self, async_session, title: str) -> Podcast | None:
+        async with async_session() as session:
             stmt = select(Podcast).where(Podcast.title == title)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getPodcastBulk(self, ids: list[int]) -> list[Podcast]:
-        async with self.asyncSession() as session:
+    async def getPodcastBulk(self, async_session: async_sessionmaker[AsyncSession], ids: list[int]) -> list[Podcast]:
+        async with async_session() as session:
             stmt = select(Podcast).filter(Podcast.id.in_(ids))
             result = await session.execute(stmt)
             return result.scalars()
 
-    async def addPodcast(self, podcast: Podcast) -> Podcast:
-        async with self.asyncSession() as session:
+    async def addPodcast(self, async_session: async_sessionmaker[AsyncSession], podcast: Podcast) -> Podcast:
+        async with async_session() as session:
             async with session.begin():
                 p = podcast
                 session.add(p)
                 await session.flush()
                 return p
 
-    async def getSubscriptionUser(self, userId: int, podcastId: int) -> Subscriptions | None:
-        async with self.asyncSession() as session:
+    async def getSubscriptionUser(self, async_session, userId: int, podcastId: int) -> Subscriptions | None:
+        async with async_session() as session:
             stmt = select(Subscriptions).where(Subscriptions.userId == userId).where(
                 Subscriptions.podcastId == podcastId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getSubscription(self, subscriptionId: int) -> Subscriptions:
-        async with self.asyncSession() as session:
+    async def getSubscription(self, async_session: async_sessionmaker[AsyncSession], subscriptionId: int) -> Subscriptions:
+        async with async_session() as session:
             stmt = select(Subscriptions).where(
                 Subscriptions.id == subscriptionId)
             result = await session.execute(stmt)
             return result.scalar_one()
 
-    async def addSubscription(self, subscription: Subscriptions) -> Subscriptions:
-        async with self.asyncSession() as session:
+    async def addSubscription(self, async_session: async_sessionmaker[AsyncSession], subscription: Subscriptions) -> Subscriptions:
+        async with async_session() as session:
             async with session.begin():
                 s = subscription
                 session.add(s)
                 await session.flush()
                 return s
 
-    async def deleteSubscription(self, subscription: Subscriptions):
-        async with self.asyncSession() as session:
+    async def deleteSubscription(self, async_session: async_sessionmaker[AsyncSession], subscription: Subscriptions):
+        async with async_session() as session:
             await session.delete(subscription)
             await session.commit()
 
-    async def getEpisode(self, episodeId: int) -> Episode | None:
-        async with self.asyncSession() as session:
+    async def getEpisode(self, async_session, episodeId: int) -> Episode | None:
+        async with async_session() as session:
             stmt = select(Episode).where(Episode.id == episodeId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getEpisodePodcastNumber(self, podcastId: int, episodeNumber: int) -> Episode | None:
-        async with self.asyncSession() as session:
+    async def getEpisodePodcastNumber(self, async_session: async_sessionmaker[AsyncSession], podcastId: int, episodeNumber: int) -> Episode | None:
+        async with async_session() as session:
             stmt = select(Episode).where(Episode.podcastId == podcastId).where(
                 Episode.episodeNumber == episodeNumber)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def addEpisode(self, episode: Episode) -> Episode:
-        async with self.asyncSession() as session:
+    async def addEpisode(self, async_session: async_sessionmaker[AsyncSession], episode: Episode) -> Episode:
+        async with async_session() as session:
             async with session.begin():
                 e = episode
                 session.add(e)
                 await session.flush()
                 return e
 
-    async def getPlaystate(self, playstateId: int) -> Playstate | None:
-        async with self.asyncSession() as session:
+    async def getPlaystate(self, async_session: async_sessionmaker[AsyncSession], playstateId: int) -> Playstate | None:
+        async with async_session() as session:
             stmt = select(Playstate).where(Playstate.id == playstateId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def getPlaystateUserEpisode(self, userId: int, episodeId: int) -> Playstate | None:
-        async with self.asyncSession() as session:
+    async def getPlaystateUserEpisode(self, async_session: async_sessionmaker[AsyncSession], userId: int, episodeId: int) -> Playstate | None:
+        async with async_session() as session:
             stmt = select(Playstate).where(Playstate.userId == userId).where(
                 Playstate.episodeId == episodeId)
             result = await session.execute(stmt)
             return result.scalar_one_or_none()
 
-    async def addPlaystate(self, playstate: Playstate) -> Playstate:
-        async with self.asyncSession() as session:
+    async def addPlaystate(self, async_session: async_sessionmaker[AsyncSession], playstate: Playstate) -> Playstate:
+        async with async_session() as session:
             async with session.begin():
                 p = playstate
                 session.add(p)
                 await session.flush()
                 return p
 
-    async def updatePlaystate(self, playstateId: int, timestamp: int) -> Playstate:
-        async with self.asyncSession() as session:
+    async def updatePlaystate(self, async_session: async_sessionmaker[AsyncSession], playstateId: int, timestamp: int) -> Playstate:
+        async with async_session() as session:
             stmt = select(Playstate).where(Playstate.id == playstateId)
             result = await session.execute(stmt)
             playstate = result.scalar_one()

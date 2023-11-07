@@ -1,12 +1,12 @@
-from database.db import Database
 from discord import Interaction
 from messages.messages import Messages
+from database.db import Database
 
 
 class Utils():
-    async def stopSaveAudio(interaction: Interaction, db: Database):
+    async def stopSaveAudio(interaction: Interaction, db: Database, session):
         if (interaction.guild.voice_client.is_playing()):
-            await db.updatePlaystate(interaction.guild.voice_client.source.playstateId, interaction.guild.voice_client.source.currentTimestamp)
+            await db.updatePlaystate(session, interaction.guild.voice_client.source.playstateId, interaction.guild.voice_client.source.currentTimestamp)
             interaction.guild.voice_client.stop()
 
     async def connect(interaction: Interaction):
@@ -19,16 +19,18 @@ class Utils():
                 await interaction.followup.send(Messages.ConnectedTo(channel.name))
             try:
                 await channel.connect()
+                return
             except Exception as e:
                 if interaction.response.type is None:
                     await interaction.response.send_message(Messages.ErrorConnecting)
                     return
                 await interaction.followup.send(Messages.ErrorConnecting)
-        else:
-            if interaction.response.type is None:
-                await interaction.response.send_message(Messages.NotConnected)
                 return
-            await interaction.followup.send(Messages.NotConnected)
+
+        if interaction.response.type is None:
+            await interaction.response.send_message(Messages.NotConnected)
+            return
+        await interaction.followup.send(Messages.NotConnected)
 
     async def sendResponseMessage(interaction: Interaction, msg: str):
         await interaction.response.send_message(msg)
