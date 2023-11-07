@@ -3,6 +3,8 @@ hvac
 requests
 pyPodcastParser
 sqlalchemy[asyncio]
+sqlalchemy-asyncio
 aiosqlite
 pytest_mock
 pytest[asyncio]
+pytest-asyncio
