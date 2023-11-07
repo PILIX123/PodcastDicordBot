@@ -31,8 +31,7 @@ class Database():
         async with async_session() as session:
             async with session.begin():
                 session.add(user)
-                await session.flush()
-                user
+                await session.commit()
 
     async def getPodcast(self, async_session: async_sessionmaker[AsyncSession], podcastId: int) -> Podcast | None:
         async with async_session() as session:
@@ -50,7 +49,7 @@ class Database():
         async with async_session() as session:
             stmt = select(Podcast).filter(Podcast.id.in_(ids))
             result = await session.execute(stmt)
-            return result.scalars()
+            return result.scalars().all()
 
     async def addPodcast(self, async_session: async_sessionmaker[AsyncSession], podcast: Podcast) -> Podcast:
         async with async_session() as session:

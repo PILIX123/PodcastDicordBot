@@ -37,6 +37,7 @@ async def stop(interaction: Interaction):
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db, sessionMaker(engine))
         await interaction.followup.send(Messages.AudioSaved)
+        return
     await interaction.followup.send(Messages.NotConnected)
 
 
@@ -173,8 +174,6 @@ async def play(interaction: Interaction, name: str, episode_number: None | int =
     if playstate is None:
         playstate = await db.addPlaystate(session, Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
 
-    user.lastEpisodeId = episode.id
-    user.lastPodcastId = podcast.id
     if interaction.guild.voice_client is None:
         await Utils.connect(interaction)
 
