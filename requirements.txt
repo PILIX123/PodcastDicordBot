@@ -5,3 +5,4 @@ pyPodcastParser
 sqlalchemy[asyncio]
 aiosqlite
 pytest_mock
+pytest[asyncio]
