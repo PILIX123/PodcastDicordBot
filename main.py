@@ -3,19 +3,6 @@ from models.base import Base
 from discord import Intents, Interaction, Client, app_commands
 from vault.vault import Vault
 from database.db import Database
-from rssreader.reader import Reader
-from utils.customAudio import CustomAudio
-from utils.utils import Utils
-from utils.converters import Converters
-from messages.messages import Messages
-from messages.descriptions import Description
-from enums.enums import CommandEnum
-from pyPodcastParser.Podcast import Podcast
-from requests import get
-from models.episode import Episode
-from models.subscription import Subscriptions
-from models.playstate import Playstate
-from models.podcasts import Podcast as PodcastDto
 from commands import commands
 
 vault = Vault()
