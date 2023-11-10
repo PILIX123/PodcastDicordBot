@@ -14,18 +14,21 @@ from models.playstate import Playstate
 from utils.customAudio import CustomAudio
 from database.db import Database
 
-async def connect(interaction:Interaction):
+
+async def connect(interaction: Interaction):
     await Utils.connect(interaction)
 
-async def stop(interaction:Interaction,db:Database,session):
+
+async def stop(interaction: Interaction, db: Database, session):
     await interaction.response.defer(thinking=True)
     if (interaction.guild.voice_client is not None):
-        await Utils.stopSaveAudio(interaction, db,session)
+        await Utils.stopSaveAudio(interaction, db, session)
         await interaction.followup.send(Messages.AudioSaved)
         return
     await interaction.followup.send(Messages.NotConnected)
 
-async def disconnect(interaction:Interaction,db:Database,session):
+
+async def disconnect(interaction: Interaction, db: Database, session):
     await interaction.response.defer(thinking=True)
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db, session)
@@ -34,7 +37,8 @@ async def disconnect(interaction:Interaction,db:Database,session):
     else:
         await interaction.followup.send(Messages.NotConnected)
 
-async def subscribe(interaction:Interaction,url:str,db:Database,session):
+
+async def subscribe(interaction: Interaction, url: str, db: Database, session):
     await interaction.response.defer(thinking=True)
     url = "https://" + \
         url if not \
@@ -58,7 +62,8 @@ async def subscribe(interaction:Interaction,url:str,db:Database,session):
     else:
         await interaction.followup.send(Messages.PodcastNotAdded)
 
-async def list(interaction:Interaction,db:Database,session):
+
+async def list(interaction: Interaction, db: Database, session):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(session, interaction.user.id)
 
@@ -71,12 +76,13 @@ async def list(interaction:Interaction,db:Database,session):
     names = [f"- {p.title}" for p in podcasts]
     nameL = """  
 """.join(names)
-    t= f"""You are subscribed to:  
+    t = f"""You are subscribed to:  
 {nameL}"""
     await interaction.followup.send(f"""You are subscribed to:  
 {nameL}""")
 
-async def unsubscribe(interaction:Interaction,name:str,db:Database,session):
+
+async def unsubscribe(interaction: Interaction, name: str, db: Database, session):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(session, interaction.user.id)
 
@@ -85,7 +91,8 @@ async def unsubscribe(interaction:Interaction,name:str,db:Database,session):
     await db.deleteSubscription(session, subscription)
     await interaction.followup.send(f"Unsubscribed from {name}")
 
-async def help(interaction:Interaction,command:CommandEnum):
+
+async def help(interaction: Interaction, command: CommandEnum):
     match(command):
         case CommandEnum.Connect:
             await Utils.sendResponseMessage(interaction, Description.Connect)
@@ -100,7 +107,8 @@ async def help(interaction:Interaction,command:CommandEnum):
         case CommandEnum.Play:
             await Utils.sendResponseMessage(interaction, Description.Play)
 
-async def play(interaction:Interaction,name:str,episode_number: int | None, timestamp: str |None,db:Database,session):
+
+async def play(interaction: Interaction, name: str, episode_number: int | None, timestamp: str | None, db: Database, session):
     await interaction.response.defer(thinking=True)
     podcast = await db.getPodcastFromTitle(session, name)
     user = await db.getUser(session, interaction.user.id)
@@ -111,9 +119,10 @@ async def play(interaction:Interaction,name:str,episode_number: int | None, time
     # TODO /ff to skip 30 sec ahead and /bw to rewind 15 sec
     # TODO:
     # Une commande fast-forward et back-ward
-    # add completed to playstate, ask user to replay
+    # add completed to playstate, ask user to replay with buttons
     # add error handling
     # mark completed
+    # TODO: ADD QUEUE COMMANDS
 
     if timestamp is not None:
         if len(timestamp.split(":")) != 3:
@@ -132,14 +141,14 @@ async def play(interaction:Interaction,name:str,episode_number: int | None, time
     if subscription is None:
         await interaction.followup.send(Messages.SubscriptionNotFound)
         return
-    
+
     reader = Reader(Podcast(get(podcast.url).content))
 
     if episode_number is None:
         episode_number = len(reader.podcast.items)
 
     if podcast.id == user.lastPodcastId:
-        #TODO: Add button to confirm 
+        # TODO: Add button to confirm
         episode = await db.getEpisode(session, user.lastEpisodeId)
     if episode is None:
         episode = await db.getEpisodePodcastNumber(session, podcast.id, episode_number)
@@ -158,11 +167,11 @@ async def play(interaction:Interaction,name:str,episode_number: int | None, time
     user.lastPodcastId = podcast.id
     await db.updateUser(session, user)
     if playstate is None:
-        playstate = await db.addPlaystate(session, Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms),userId=user.id))
+        playstate = await db.addPlaystate(session, Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
 
     if interaction.guild.voice_client is None:
-        #Not tested because this function is tested and works
-        await Utils.connect(interaction) #pragma: no coverage
+        # Not tested because this function is tested and works
+        await Utils.connect(interaction)  # pragma: no coverage
 
     acutalTimestamp = playstate.timestamp if timestampms is None else timestampms
     options = f"-ss {acutalTimestamp}ms"
