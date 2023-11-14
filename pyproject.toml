@@ -1,10 +1,20 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling",
+            "discord.py",
+            "hvac",
+            "requests",
+            "pyPodcastParser",
+            "sqlalchemy[asyncio]",
+            "aiosqlite",
+            "pytest_mock",
+            "pytest[asyncio]",
+            "pytest-asyncio",
+            "python-dotenv"]
 build-backend = "hatchling.build"
 
 [project]
-name = "PodcastBotDiscord"
-version = "0.1.1"
+name = "botpackage"
+version = "0.1.2"
 authors = [{name="Pierre-Luc R."}]
 description = "A discord bot that can play podcasts"
 requires-python = ">=3.10.5"
@@ -19,7 +29,11 @@ exclude=[
     "alembic.ini",
     "alembic/",
     ".vscode/",
-    ".github/"
+    ".github/",
+    "main.py",
+    "pytest.ini",
+    "requirements.txt",
+    "list.sqlite",
 ]
 
 

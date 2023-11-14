@@ -1,4 +1,4 @@
-from botmodules.rssreader.reader import Reader
+from botpackage.rssreader.reader import Reader
 
 
 class PodcastMock():
