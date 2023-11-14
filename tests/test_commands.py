@@ -1,9 +1,9 @@
 from pytest import mark
 from pytest_mock.plugin import MockerFixture
-from botpackage.commandsModule import commands
-from botpackage.messages.messages import Messages
-from botpackage.messages.descriptions import Description
-from botpackage.enums.enums import CommandEnum
+from commands import commands
+from messages.messages import Messages
+from messages.descriptions import Description
+from enums.enums import CommandEnum
 pytest_plugins = ('pytest_asyncio',)
 
 

@@ -9,12 +9,13 @@ requires = ["hatchling",
             "pytest_mock",
             "pytest[asyncio]",
             "pytest-asyncio",
-            "python-dotenv"]
+            "python-dotenv",
+            "botpackage"]
 build-backend = "hatchling.build"
 
 [project]
 name = "botpackage"
-version = "0.1.2"
+version = "0.1.8"
 authors = [{name="Pierre-Luc R."}]
 description = "A discord bot that can play podcasts"
 requires-python = ">=3.10.5"

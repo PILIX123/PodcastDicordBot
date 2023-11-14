@@ -1,5 +1,5 @@
 from pytest import raises
-from botpackage.utils.converters import Converters
+from utils.converters import Converters
 
 
 def test_converters_hrsToMs() -> None:

@@ -1,12 +1,12 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from pytest import mark
-from botpackage.models.base import Base
-from botpackage.models.user import User
-from botpackage.models.episode import Episode
-from botpackage.models.subscription import Subscriptions
-from botpackage.models.playstate import Playstate
-from botpackage.models.podcasts import Podcast
-from botpackage.database.db import Database
+from models.base import Base
+from models.user import User
+from models.episode import Episode
+from models.subscription import Subscriptions
+from models.playstate import Playstate
+from models.podcasts import Podcast
+from database.db import Database
 
 
 async def setupGet(obj):

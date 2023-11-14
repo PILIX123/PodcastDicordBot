@@ -1,7 +1,7 @@
 from pytest import mark
 from pytest_mock.plugin import MockerFixture
 from utils.utils import Utils
-from botpackage.messages.messages import Messages
+from messages.messages import Messages
 pytest_plugins = ('pytest_asyncio',)
 
 

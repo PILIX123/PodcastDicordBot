@@ -1,6 +1,6 @@
 from discord import FFmpegPCMAudio
 from pytest import MonkeyPatch
-from botpackage.utils.customAudio import CustomAudio
+from utils.customAudio import CustomAudio
 
 
 def test_CustomAudio(monkeypatch: MonkeyPatch) -> None:
