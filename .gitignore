@@ -4,6 +4,3 @@ archive/
 .pytest_cache/
 htmlcov/
 .coverage
-/dist
-PodcastBotDiscord.egg-info/
-build/
