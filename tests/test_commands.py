@@ -1,20 +1,22 @@
-from commands import commands
 from pytest import mark
 from pytest_mock.plugin import MockerFixture
-from messages.messages import Messages
-from messages.descriptions import Description
-from enums.enums import CommandEnum
+from botmodules.commandsModule import commands
+from botmodules.messages.messages import Messages
+from botmodules.messages.descriptions import Description
+from botmodules.enums.enums import CommandEnum
 pytest_plugins = ('pytest_asyncio',)
 
+
 @mark.asyncio
-async def test_connect(mocker:MockerFixture):
+async def test_connect(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.connect = mocker.async_stub()
     await commands.connect("test")
     utils.connect.assert_called_once_with("test")
 
+
 @mark.asyncio
-async def test_stop_connected(mocker:MockerFixture):
+async def test_stop_connected(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.stopSaveAudio = mocker.async_stub()
     followup = mocker.MagicMock()
@@ -30,12 +32,14 @@ async def test_stop_connected(mocker:MockerFixture):
     interaction.followup = followup
     interaction.response = response
     interaction.guild = guild
-    await commands.stop(interaction,"TEST_DB","TEST_SESSION")
-    utils.stopSaveAudio.assert_awaited_once_with(interaction,"TEST_DB","TEST_SESSION")
+    await commands.stop(interaction, "TEST_DB", "TEST_SESSION")
+    utils.stopSaveAudio.assert_awaited_once_with(
+        interaction, "TEST_DB", "TEST_SESSION")
     followup.send.assert_awaited_with(Messages.AudioSaved)
 
+
 @mark.asyncio
-async def test_stop_notConnected(mocker:MockerFixture):
+async def test_stop_notConnected(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.stopSaveAudio = mocker.async_stub()
     followup = mocker.MagicMock()
@@ -51,12 +55,13 @@ async def test_stop_notConnected(mocker:MockerFixture):
     interaction.followup = followup
     interaction.response = response
     interaction.guild = guild
-    await commands.stop(interaction,"TEST_DB","TEST_SESSION")
+    await commands.stop(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_not_awaited()
     followup.send.assert_awaited_with(Messages.NotConnected)
 
+
 @mark.asyncio
-async def test_disconnect_Connected(mocker:MockerFixture):
+async def test_disconnect_Connected(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.stopSaveAudio = mocker.async_stub()
     followup = mocker.MagicMock()
@@ -70,18 +75,20 @@ async def test_disconnect_Connected(mocker:MockerFixture):
 
     guild = mocker.MagicMock()
     guild.voice_client = voice_client
-    
+
     interaction = mocker.MagicMock()
     interaction.followup = followup
     interaction.response = response
     interaction.guild = guild
 
-    await commands.disconnect(interaction,"TEST_DB","TEST_SESSION")
-    utils.stopSaveAudio.assert_awaited_once_with(interaction,"TEST_DB","TEST_SESSION")
+    await commands.disconnect(interaction, "TEST_DB", "TEST_SESSION")
+    utils.stopSaveAudio.assert_awaited_once_with(
+        interaction, "TEST_DB", "TEST_SESSION")
     followup.send.assert_awaited_with(Messages.Disconnected)
 
+
 @mark.asyncio
-async def test_disconnect_notConnected(mocker:MockerFixture):
+async def test_disconnect_notConnected(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.stopSaveAudio = mocker.async_stub()
     followup = mocker.MagicMock()
@@ -97,9 +104,10 @@ async def test_disconnect_notConnected(mocker:MockerFixture):
     interaction.followup = followup
     interaction.response = response
     interaction.guild = guild
-    await commands.disconnect(interaction,"TEST_DB","TEST_SESSION")
+    await commands.disconnect(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_not_awaited()
     followup.send.assert_awaited_with(Messages.NotConnected)
+
 
 def setupMocks(mocker):
     get = mocker.patch("commands.commands.get")
@@ -122,7 +130,7 @@ def setupMocks(mocker):
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
@@ -143,22 +151,23 @@ def setupMocks(mocker):
 
     db = mocker.MagicMock()
 
-    return get,followup,interaction,db
+    return get, followup, interaction, db
+
 
 @mark.asyncio
-async def test_subscribe(mocker:MockerFixture):
+async def test_subscribe(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -169,28 +178,31 @@ async def test_subscribe(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = subscription
 
-    await commands.subscribe(interaction,"TEST_URL",db,"TEST_SESSION")
+    await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
     get.assert_called_once_with("https://TEST_URL")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.addUser.assert_not_awaited()
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST_TITLE")
-    db.addSubscription.assert_awaited_once_with("TEST_SESSION","TEST_SUBSCRIPTION")
+    db.getPodcastFromTitle.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_TITLE")
+    db.addSubscription.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_SUBSCRIPTION")
     followup.send.assert_awaited_once_with(Messages.PodcastAdded)
 
+
 @mark.asyncio
-async def test_subscribe_userNone(mocker:MockerFixture):
+async def test_subscribe_userNone(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -201,29 +213,31 @@ async def test_subscribe_userNone(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = subscription
     db.addUser.return_value = user
-    await commands.subscribe(interaction,"TEST_URL",db,"TEST_SESSION")
+    await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
     get.assert_called_once_with("https://TEST_URL")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
-    db.addUser.assert_awaited_once_with("TEST_SESSION",123)
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST_TITLE")
-    db.addSubscription.assert_awaited_once_with("TEST_SESSION","TEST_SUBSCRIPTION")
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
+    db.addUser.assert_awaited_once_with("TEST_SESSION", 123)
+    db.getPodcastFromTitle.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_TITLE")
+    db.addSubscription.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_SUBSCRIPTION")
     followup.send.assert_awaited_once_with(Messages.PodcastAdded)
 
 
 @mark.asyncio
-async def test_subscribe_podcastNone(mocker:MockerFixture):
+async def test_subscribe_podcastNone(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -235,29 +249,32 @@ async def test_subscribe_podcastNone(mocker:MockerFixture):
     db.addSubscription.return_value = subscription
     db.addPodcast.return_value = podcast
 
-    await commands.subscribe(interaction,"TEST_URL",db,"TEST_SESSION")
+    await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
     get.assert_called_once_with("https://TEST_URL")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.addUser.assert_not_awaited()
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST_TITLE")
-    db.addPodcast.assert_awaited_once_with("TEST_SESSION","TEST_PODCAST")
-    db.addSubscription.assert_awaited_once_with("TEST_SESSION","TEST_SUBSCRIPTION")
+    db.getPodcastFromTitle.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_TITLE")
+    db.addPodcast.assert_awaited_once_with("TEST_SESSION", "TEST_PODCAST")
+    db.addSubscription.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_SUBSCRIPTION")
     followup.send.assert_awaited_once_with(Messages.PodcastAdded)
 
+
 @mark.asyncio
-async def test_subscribe_subscriptionNone(mocker:MockerFixture):
+async def test_subscribe_subscriptionNone(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -268,29 +285,32 @@ async def test_subscribe_subscriptionNone(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = None
 
-    await commands.subscribe(interaction,"TEST_URL",db,"TEST_SESSION")
+    await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
     get.assert_called_once_with("https://TEST_URL")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.addUser.assert_not_awaited()
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST_TITLE")
+    db.getPodcastFromTitle.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_TITLE")
     db.addPodcast.assert_not_awaited()
-    db.addSubscription.assert_awaited_once_with("TEST_SESSION","TEST_SUBSCRIPTION")
+    db.addSubscription.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_SUBSCRIPTION")
     followup.send.assert_awaited_once_with(Messages.PodcastNotAdded)
 
+
 @mark.asyncio
-async def test_list_userNone(mocker:MockerFixture):
+async def test_list_userNone(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
 
     subscription = mocker.MagicMock()
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -300,33 +320,33 @@ async def test_list_userNone(mocker:MockerFixture):
     db.getUser.return_value = None
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = None
-    await commands.list(interaction,db,"TEST_SESSION")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
+    await commands.list(interaction, db, "TEST_SESSION")
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     followup.send.assert_awaited_once_with(Messages.UserNotFound)
 
+
 @mark.asyncio
-async def test_list(mocker:MockerFixture):
+async def test_list(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
     mockSub1 = mocker.MagicMock()
-    mockSub1.id =1
+    mockSub1.id = 1
     mockSub2 = mocker.MagicMock()
-    mockSub2.id =2
+    mockSub2.id = 2
 
-
-    user.subscriptions = [mockSub1,mockSub2]
+    user.subscriptions = [mockSub1, mockSub2]
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
     podcast.title = "TEST1"
     podcast2 = mocker.MagicMock()
-    podcast2.id =2
+    podcast2.id = 2
     podcast2.title = "TEST2"
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.addUser = mocker.async_stub()
@@ -337,35 +357,36 @@ async def test_list(mocker:MockerFixture):
     db.getUser.return_value = user
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = None
-    db.getPodcastBulk.return_value = [podcast,podcast2]
-    await commands.list(interaction,db,"TEST_SESSION")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",123)
-    db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION",[1,2])
-    followup.send.assert_awaited_once_with('You are subscribed to:  \n- TEST1  \n- TEST2')
+    db.getPodcastBulk.return_value = [podcast, podcast2]
+    await commands.list(interaction, db, "TEST_SESSION")
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
+    db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION", [1, 2])
+    followup.send.assert_awaited_once_with(
+        'You are subscribed to:  \n- TEST1  \n- TEST2')
+
 
 @mark.asyncio
-async def test_unsubscribe(mocker:MockerFixture):
+async def test_unsubscribe(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
     mockSub1 = mocker.MagicMock()
-    mockSub1.id =1
+    mockSub1.id = 1
     mockSub2 = mocker.MagicMock()
-    mockSub2.id =2
+    mockSub2.id = 2
 
-
-    user.subscriptions = [mockSub1,mockSub2]
+    user.subscriptions = [mockSub1, mockSub2]
 
     podcast = mocker.MagicMock()
-    podcast.id =1
+    podcast.id = 1
     podcast.title = "TEST1"
     podcast2 = mocker.MagicMock()
-    podcast2.id =2
+    podcast2.id = 2
     podcast2.title = "TEST2"
 
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
-    get,followup,interaction,db = setupMocks(mocker)
+    get, followup, interaction, db = setupMocks(mocker)
     db.getUser = mocker.async_stub()
     db.getPodcastFromTitle = mocker.async_stub()
     db.getSubscriptionUser = mocker.async_stub()
@@ -373,62 +394,75 @@ async def test_unsubscribe(mocker:MockerFixture):
     db.getUser.return_value = user
     db.getPodcastFromTitle.return_value = podcast
     db.getSubscriptionUser.return_value = mockSub1
-    await commands.unsubscribe(interaction,"TEST1",db,"TEST_SESSION")
+    await commands.unsubscribe(interaction, "TEST1", db, "TEST_SESSION")
     followup.send.assert_awaited_once_with("Unsubscribed from TEST1")
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST1")
-    db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION",123,1)
-    db.deleteSubscription.assert_awaited_once_with("TEST_SESSION",mockSub1)
+    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION", "TEST1")
+    db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION", 123, 1)
+    db.deleteSubscription.assert_awaited_once_with("TEST_SESSION", mockSub1)
+
 
 @mark.asyncio
-async def test_help_connect(mocker:MockerFixture):
+async def test_help_connect(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Connect)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Connect)
+    await commands.help("TEST_INTERACTION", CommandEnum.Connect)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Connect)
+
 
 @mark.asyncio
-async def test_help_disconnect(mocker:MockerFixture):
+async def test_help_disconnect(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Disconnect)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Disconnect)
+    await commands.help("TEST_INTERACTION", CommandEnum.Disconnect)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Disconnect)
+
 
 @mark.asyncio
-async def test_help_stop(mocker:MockerFixture):
+async def test_help_stop(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Stop)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Stop)
+    await commands.help("TEST_INTERACTION", CommandEnum.Stop)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Stop)
+
 
 @mark.asyncio
-async def test_help_subscribe(mocker:MockerFixture):
+async def test_help_subscribe(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Subscribe)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Subscribe)
+    await commands.help("TEST_INTERACTION", CommandEnum.Subscribe)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Subscribe)
+
 
 @mark.asyncio
-async def test_help_unsubscribe(mocker:MockerFixture):
+async def test_help_unsubscribe(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Unsubscribe)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Unsubscribe)
+    await commands.help("TEST_INTERACTION", CommandEnum.Unsubscribe)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Unsubscribe)
+
 
 @mark.asyncio
-async def test_help_play(mocker:MockerFixture):
+async def test_help_play(mocker: MockerFixture):
     utils = mocker.patch("commands.commands.Utils")
     utils.sendResponseMessage = mocker.async_stub()
 
-    await commands.help("TEST_INTERACTION",CommandEnum.Play)
-    utils.sendResponseMessage.assert_awaited_once_with("TEST_INTERACTION",Description.Play)
+    await commands.help("TEST_INTERACTION", CommandEnum.Play)
+    utils.sendResponseMessage.assert_awaited_once_with(
+        "TEST_INTERACTION", Description.Play)
+
 
 @mark.asyncio
-async def test_play(mocker:MockerFixture):
+async def test_play(mocker: MockerFixture):
     get = mocker.patch("commands.commands.get")
     get.return_value.content = "TEST_CONTENT"
     response = mocker.MagicMock()
@@ -454,7 +488,7 @@ async def test_play(mocker:MockerFixture):
 
     reader = mocker.patch("commands.commands.Reader")
     reader.return_value.podcast.title = "TEST_TITLE"
-    reader.return_value.podcast.items = [1,2,3]
+    reader.return_value.podcast.items = [1, 2, 3]
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
@@ -505,23 +539,28 @@ async def test_play(mocker:MockerFixture):
     db.getEpisodePodcastNumber.return_value = None
     db.addPlaystate = mocker.async_stub()
     db.addPlaystate.return_value = playstate
-    await commands.play(interaction,"TEST_TITLE",None,None,db,"TEST_SESSION")
-    db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION","TEST_TITLE")
-    db.getUser.assert_awaited_once_with("TEST_SESSION",1)
+    await commands.play(interaction, "TEST_TITLE", None, None, db, "TEST_SESSION")
+    db.getPodcastFromTitle.assert_awaited_once_with(
+        "TEST_SESSION", "TEST_TITLE")
+    db.getUser.assert_awaited_once_with("TEST_SESSION", 1)
     get.assert_called_once_with("http://test.test")
     podcastMock.assert_called_once_with("TEST_CONTENT")
     reader.assert_called_once_with("PODCAST_MOCK")
-    db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION",1,1)
-    db.getEpisodePodcastNumber.assert_awaited_once_with("TEST_SESSION",1,3)
-    episodeMock.assert_called_once_with(episodeNumber=3,podcastId=1,title="EPISODE_TITLE")
-    db.addEpisode.assert_awaited_once_with("TEST_SESSION","TEST_EPISODE")
-    db.updateUser.assert_awaited_once_with("TEST_SESSION",user)
-    db.addPlaystate.assert_awaited_once_with("TEST_SESSION","TEST_PLAYSTATE")
-    customAudio.assert_called_once_with("http://test.test/mp3",0,1,before_options= "-ss 0ms")
-    followup.send.assert_awaited_once_with("Playing TEST_TITLE  \nEpisode 123: EPISODE_TITLE")
+    db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION", 1, 1)
+    db.getEpisodePodcastNumber.assert_awaited_once_with("TEST_SESSION", 1, 3)
+    episodeMock.assert_called_once_with(
+        episodeNumber=3, podcastId=1, title="EPISODE_TITLE")
+    db.addEpisode.assert_awaited_once_with("TEST_SESSION", "TEST_EPISODE")
+    db.updateUser.assert_awaited_once_with("TEST_SESSION", user)
+    db.addPlaystate.assert_awaited_once_with("TEST_SESSION", "TEST_PLAYSTATE")
+    customAudio.assert_called_once_with(
+        "http://test.test/mp3", 0, 1, before_options="-ss 0ms")
+    followup.send.assert_awaited_once_with(
+        "Playing TEST_TITLE  \nEpisode 123: EPISODE_TITLE")
+
 
 @mark.asyncio
-async def test_play_wrongTimestamp(mocker:MockerFixture):
+async def test_play_wrongTimestamp(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
@@ -537,11 +576,12 @@ async def test_play_wrongTimestamp(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = None
     db.getUser = mocker.async_stub()
     db.getUser.return_value = None
-    await commands.play(interaction,"TEST_NAME",None,"2:2",db,"TEST_SESSION")
+    await commands.play(interaction, "TEST_NAME", None, "2:2", db, "TEST_SESSION")
     followup.send.assert_awaited_once_with(Messages.FormatError)
 
+
 @mark.asyncio
-async def test_play_rightTimestamp(mocker:MockerFixture):
+async def test_play_rightTimestamp(mocker: MockerFixture):
     content = mocker.MagicMock()
     content.return_value = "TEST_CONTENT"
     get = mocker.patch("commands.commands.get")
@@ -569,7 +609,7 @@ async def test_play_rightTimestamp(mocker:MockerFixture):
 
     reader = mocker.patch("commands.commands.Reader")
     reader.return_value.podcast.title = "TEST_TITLE"
-    reader.return_value.podcast.items = [1,2,3]
+    reader.return_value.podcast.items = [1, 2, 3]
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
@@ -621,11 +661,13 @@ async def test_play_rightTimestamp(mocker:MockerFixture):
     db.getEpisodePodcastNumber.return_value = None
     db.addPlaystate = mocker.async_stub()
     db.addPlaystate.return_value = playstate
-    await commands.play(interaction,"TEST_NAME",None,"02:02:02",db,"TEST_SESSION")
-    customAudio.assert_called_once_with("http://test.test/mp3",7322000,1,before_options= "-ss 7322000ms")
+    await commands.play(interaction, "TEST_NAME", None, "02:02:02", db, "TEST_SESSION")
+    customAudio.assert_called_once_with(
+        "http://test.test/mp3", 7322000, 1, before_options="-ss 7322000ms")
+
 
 @mark.asyncio
-async def test_play_noUser(mocker:MockerFixture):
+async def test_play_noUser(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
@@ -641,11 +683,12 @@ async def test_play_noUser(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = None
     db.getUser = mocker.async_stub()
     db.getUser.return_value = None
-    await commands.play(interaction,"TEST_NAME",None,None,db,"TEST_SESSION")
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     followup.send.assert_awaited_once_with(Messages.UserNotFound)
 
+
 @mark.asyncio
-async def test_play_noPodcast(mocker:MockerFixture):
+async def test_play_noPodcast(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
@@ -664,11 +707,12 @@ async def test_play_noPodcast(mocker:MockerFixture):
     db.getPodcastFromTitle.return_value = None
     db.getUser = mocker.async_stub()
     db.getUser.return_value = user
-    await commands.play(interaction,"TEST_NAME",None,None,db,"TEST_SESSION")
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     followup.send.assert_awaited_once_with(Messages.PodcastNotFound)
 
+
 @mark.asyncio
-async def test_play_noSubscription(mocker:MockerFixture):
+async def test_play_noSubscription(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
@@ -693,11 +737,12 @@ async def test_play_noSubscription(mocker:MockerFixture):
     db.getUser.return_value = user
     db.getSubscriptionUser = mocker.async_stub()
     db.getSubscriptionUser.return_value = None
-    await commands.play(interaction,"TEST_NAME",None,None,db,"TEST_SESSION")
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     followup.send.assert_awaited_once_with(Messages.SubscriptionNotFound)
 
+
 @mark.asyncio
-async def test_play_lastPodcastId(mocker:MockerFixture):
+async def test_play_lastPodcastId(mocker: MockerFixture):
     get = mocker.patch("commands.commands.get")
     podcastMock = mocker.patch("commands.commands.Podcast")
 
@@ -706,11 +751,11 @@ async def test_play_lastPodcastId(mocker:MockerFixture):
 
     reader = mocker.patch("commands.commands.Reader")
     reader.return_value.podcast.title = "TEST_TITLE"
-    reader.return_value.podcast.items = [1,2,3]
+    reader.return_value.podcast.items = [1, 2, 3]
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
-    
+
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
@@ -756,6 +801,6 @@ async def test_play_lastPodcastId(mocker:MockerFixture):
     db.getPlaystateUserEpisode = mocker.async_stub()
     db.getPlaystateUserEpisode.return_value = playstate
     db.updateUser = mocker.async_stub()
-    await commands.play(interaction,"TEST_NAME",None,None,db,"TEST_SESSION")
-    db.getEpisode.assert_awaited_once_with("TEST_SESSION",1)
-    db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION",1,1)
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
+    db.getEpisode.assert_awaited_once_with("TEST_SESSION", 1)
+    db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)

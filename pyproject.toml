@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "PodcastBotDiscord"
+version = "0.1.1"
+authors = [{name="Pierre-Luc R."}]
+description = "A discord bot that can play podcasts"
+requires-python = ">=3.10.5"
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.hatch.build]
+exclude=[
+    "alembic.ini",
+    "alembic/",
+    ".vscode/",
+    ".github/"
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/PILIX123/PodcastDicordBot"

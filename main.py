@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from models.base import Base
 from discord import Intents, Interaction, Client, app_commands
-from vault.vault import Vault
-from database.db import Database
-from commands import commands
-from enums.enums import CommandEnum
+from botmodules.models.base import Base
+from botmodules.vaultModule.vault import Vault
+from botmodules.database.db import Database
+from botmodules.commandsModule import commands
+from botmodules.enums.enums import CommandEnum
 
 vault = Vault()
 intents = Intents.none()
