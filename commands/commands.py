@@ -14,6 +14,8 @@ from models.playstate import Playstate
 from utils.customAudio import CustomAudio
 from database.db import Database
 
+QUEUE = dict()
+
 
 async def connect(interaction: Interaction):
     await Utils.connect(interaction)
@@ -55,7 +57,13 @@ async def subscribe(interaction: Interaction, url: str, db: Database, session):
     if podcast is None:
         podcast = await db.addPodcast(session, PodcastDto(url=url, title=reader.podcast.title))
 
-    subscription = await db.addSubscription(session, Subscriptions(userId=user.id, podcastId=podcast.id))
+    s = Subscriptions(userId=user.id, podcastId=podcast.id)
+    for sub in user.subscriptions:
+        if sub.podcastId == s.podcastId:
+            await interaction.followup.send(Messages.AlreadySubscribed)
+            return
+
+    subscription = await db.addSubscription(session, s)
 
     if subscription:
         await interaction.followup.send(Messages.PodcastAdded)
@@ -169,6 +177,8 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     if playstate is None:
         playstate = await db.addPlaystate(session, Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
 
+    QUEUE.update({1: playstate})
+
     if interaction.guild.voice_client is None:
         # Not tested because this function is tested and works
         await Utils.connect(interaction)  # pragma: no coverage
@@ -178,7 +188,20 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     source = CustomAudio(reader.getEpisodeUrl(
         reverseNumber), acutalTimestamp, playstate.id, before_options=options)
 
+    if interaction.guild.voice_client.isplaying():
+        await Utils.stopSaveAudio(interaction, db, session)
     interaction.guild.voice_client.play(source)
     episodeNumberName = episode.title if str(
         episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
     await interaction.followup.send(f"Playing {name}  \nEpisode {episodeNumberName}")
+
+
+def checkQueue():
+    QUEUE.get()
+    return
+
+
+async def queue(interaction: Interaction, name: str, episodeNumber: int, timestamp: str | None, db: Database, session):
+    await interaction.response.defer()
+
+    # QUEUE.update({len(QUEUE.items())+1: playstate})

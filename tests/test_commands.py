@@ -116,8 +116,6 @@ def setupMocks(mocker):
     podcastMock = mocker.patch("commands.commands.Podcast")
     podcastDto = mocker.patch("commands.commands.PodcastDto")
     podcastDto.return_value = "TEST_PODCAST"
-    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
-    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
     utils = mocker.patch("commands.commands.Utils")
     utils.stopSaveAudio = mocker.async_stub()
 
@@ -156,6 +154,9 @@ def setupMocks(mocker):
 
 @mark.asyncio
 async def test_subscribe(mocker: MockerFixture):
+    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
+    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
+
     user = mocker.MagicMock()
     user.id = 123
 
@@ -191,6 +192,9 @@ async def test_subscribe(mocker: MockerFixture):
 
 @mark.asyncio
 async def test_subscribe_userNone(mocker: MockerFixture):
+    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
+    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
+
     user = mocker.MagicMock()
     user.id = 123
 
@@ -226,6 +230,9 @@ async def test_subscribe_userNone(mocker: MockerFixture):
 
 @mark.asyncio
 async def test_subscribe_podcastNone(mocker: MockerFixture):
+    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
+    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
+
     user = mocker.MagicMock()
     user.id = 123
 
@@ -263,6 +270,9 @@ async def test_subscribe_podcastNone(mocker: MockerFixture):
 
 @mark.asyncio
 async def test_subscribe_subscriptionNone(mocker: MockerFixture):
+    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
+    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
+
     user = mocker.MagicMock()
     user.id = 123
 
@@ -295,6 +305,35 @@ async def test_subscribe_subscriptionNone(mocker: MockerFixture):
     db.addSubscription.assert_awaited_once_with(
         "TEST_SESSION", "TEST_SUBSCRIPTION")
     followup.send.assert_awaited_once_with(Messages.PodcastNotAdded)
+
+
+@mark.asyncio
+async def test_subscribe_alreadySubscribed(mocker: MockerFixture):
+    alreadySubbed = mocker.MagicMock()
+    alreadySubbed.podcastId = 1
+
+    user = mocker.MagicMock()
+    user.id = 123
+    user.subscriptions = [alreadySubbed]
+
+    podcast = mocker.MagicMock()
+    podcast.id = 1
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    get, followup, interaction, db = setupMocks(mocker)
+    db.getUser = mocker.async_stub()
+    db.getPodcastFromTitle = mocker.async_stub()
+    db.addUser = mocker.async_stub()
+    db.addPodcast = mocker.async_stub()
+    db.addSubscription = mocker.async_stub()
+
+    db.getUser.return_value = user
+    db.getPodcastFromTitle.return_value = podcast
+    await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
+    followup.send.assert_awaited_once_with(Messages.AlreadySubscribed)
+    db.addSubscription.assert_not_awaited()
 
 
 @mark.asyncio
@@ -367,6 +406,9 @@ async def test_list(mocker: MockerFixture):
 
 @mark.asyncio
 async def test_unsubscribe(mocker: MockerFixture):
+    subscriptionMock = mocker.patch("commands.commands.Subscriptions")
+    subscriptionMock.return_value = "TEST_SUBSCRIPTION"
+
     user = mocker.MagicMock()
     user.id = 123
     mockSub1 = mocker.MagicMock()
@@ -473,6 +515,7 @@ async def test_play(mocker: MockerFixture):
 
     voice_client = mocker.MagicMock()
     voice_client.play = mocker.async_stub()
+    voice_client.is_playing.return_value = False
 
     guild = mocker.MagicMock()
     guild.voice_client = voice_client
@@ -548,6 +591,7 @@ async def test_play(mocker: MockerFixture):
     reader.assert_called_once_with("PODCAST_MOCK")
     db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION", 1, 1)
     db.getEpisodePodcastNumber.assert_awaited_once_with("TEST_SESSION", 1, 3)
+    voice_client.is_playing.assert_called_once()
     episodeMock.assert_called_once_with(
         episodeNumber=3, podcastId=1, title="EPISODE_TITLE")
     db.addEpisode.assert_awaited_once_with("TEST_SESSION", "TEST_EPISODE")
@@ -594,6 +638,7 @@ async def test_play_rightTimestamp(mocker: MockerFixture):
 
     voice_client = mocker.MagicMock()
     voice_client.play = mocker.async_stub()
+    voice_client.is_playing.return_value = False
 
     guild = mocker.MagicMock()
     guild.voice_client = voice_client
@@ -762,9 +807,16 @@ async def test_play_lastPodcastId(mocker: MockerFixture):
     followup = mocker.MagicMock()
     followup.send = mocker.async_stub()
 
+    voice_client = mocker.MagicMock()
+    voice_client.is_playing.return_value = False
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
     interaction = mocker.MagicMock()
     interaction.response = response
     interaction.followup = followup
+    interaction.guild = guild
 
     user = mocker.MagicMock()
     user.id = 1
@@ -804,3 +856,77 @@ async def test_play_lastPodcastId(mocker: MockerFixture):
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     db.getEpisode.assert_awaited_once_with("TEST_SESSION", 1)
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
+
+
+@mark.asyncio
+async def test_play_stops(mocker: MockerFixture):
+    get = mocker.patch("commands.commands.get")
+    podcastMock = mocker.patch("commands.commands.Podcast")
+    utils = mocker.patch("commands.commands.Utils")
+    utils.stopSaveAudio = mocker.async_stub()
+
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    reader = mocker.patch("commands.commands.Reader")
+    reader.return_value.podcast.title = "TEST_TITLE"
+    reader.return_value.podcast.items = [1, 2, 3]
+    reader.return_value.getEpisodeUrl = mocker.stub()
+    reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
+    reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.is_playing = mocker.stub()
+    voice_client.is_playing.return_value = True
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+
+    user = mocker.MagicMock()
+    user.id = 1
+    user.lastPodcastId = 1
+    user.lastEpisodeId = 1
+
+    podcast = mocker.MagicMock()
+    podcast.id = 1
+    podcast.url = "http://test.test"
+
+    subscription = mocker.MagicMock()
+    subscription.id = 1
+    subscription.userId = 1
+    subscription.podcastId = 1
+
+    episode = mocker.MagicMock()
+    episode.id = 1
+    episode.title = "EPISODE_TITLE"
+    episode.episodeNumber = 123
+
+    playstate = mocker.MagicMock()
+    playstate.id = 1
+    playstate.timestamp = 0
+
+    db = mocker.MagicMock()
+    db.getPodcastFromTitle = mocker.async_stub()
+    db.getPodcastFromTitle.return_value = podcast
+    db.getUser = mocker.async_stub()
+    db.getUser.return_value = user
+    db.getSubscriptionUser = mocker.async_stub()
+    db.getSubscriptionUser.return_value = subscription
+    db.getEpisode = mocker.async_stub()
+    db.getEpisode.return_value = episode
+    db.getPlaystateUserEpisode = mocker.async_stub()
+    db.getPlaystateUserEpisode.return_value = playstate
+    db.updateUser = mocker.async_stub()
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
+    utils.stopSaveAudio.assert_awaited_once()

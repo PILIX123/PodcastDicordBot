@@ -9,4 +9,5 @@ class Messages():
     Disconnected = "Disconnected"
     PodcastAdded = "Podcast added"
     PodcastNotAdded = "Podcast wasn't added"
+    AlreadySubscribed = "You are already subscribed to this podcast"
     def ConnectedTo(n): return f"I connected to {n}"
