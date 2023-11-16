@@ -1007,3 +1007,79 @@ async def test_play_queues(mocker: MockerFixture):
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     # Will work because of the after check queue
     assert (commands.QUEUE == {1111: ["TEST_CUSTOM_AUDIO"]})
+
+
+@mark.asyncio
+async def test_queue(mocker: MockerFixture):
+    get = mocker.patch("commands.commands.get")
+    podcastMock = mocker.patch("commands.commands.Podcast")
+    utils = mocker.patch("commands.commands.Utils")
+    utils.stopSaveAudio = mocker.async_stub()
+
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    reader = mocker.patch("commands.commands.Reader")
+    reader.return_value.podcast.title = "TEST_TITLE"
+    reader.return_value.podcast.items = [1, 2, 3]
+    reader.return_value.getEpisodeUrl = mocker.stub()
+    reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
+    reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.is_playing = mocker.stub()
+    voice_client.is_playing.return_value = True
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+    interaction.guild_id = 1111
+
+    user = mocker.MagicMock()
+    user.id = 1
+    user.lastPodcastId = 1
+    user.lastEpisodeId = 1
+
+    podcast = mocker.MagicMock()
+    podcast.id = 1
+    podcast.url = "http://test.test"
+
+    subscription = mocker.MagicMock()
+    subscription.id = 1
+    subscription.userId = 1
+    subscription.podcastId = 1
+
+    episode = mocker.MagicMock()
+    episode.id = 1
+    episode.title = "EPISODE_TITLE"
+    episode.episodeNumber = 123
+
+    playstate = mocker.MagicMock()
+    playstate.id = 1
+    playstate.timestamp = 0
+
+    db = mocker.MagicMock()
+    db.getPodcastFromTitle = mocker.async_stub()
+    db.getPodcastFromTitle.return_value = podcast
+    db.getUser = mocker.async_stub()
+    db.getUser.return_value = user
+    db.getSubscriptionUser = mocker.async_stub()
+    db.getSubscriptionUser.return_value = subscription
+    db.getEpisode = mocker.async_stub()
+    db.getEpisode.return_value = episode
+    db.getPlaystateUserEpisode = mocker.async_stub()
+    db.getPlaystateUserEpisode.return_value = playstate
+    db.updateUser = mocker.async_stub()
+    commands.QUEUE = {1111: [1]}
+    await commands.queue(interaction, "TEST_NAME", 456, None, db, "TEST_SESSION")
+    assert (commands.QUEUE == {1111: [1, "TEST_CUSTOM_AUDIO"]})

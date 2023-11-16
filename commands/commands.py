@@ -142,7 +142,6 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
         await Utils.connect(interaction)  # pragma: no coverage
 
     if interaction.guild.voice_client.is_playing():
-        # await Utils.stopSaveAudio(interaction, db, session)
         sources: list | None = QUEUE.get(interaction.guild_id)
         if sources is None:
             QUEUE.update({interaction.guild_id: [source]})
