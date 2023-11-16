@@ -61,9 +61,17 @@ async def help(interaction: Interaction, command: CommandEnum):
     await commands.help(interaction, command)
 
 
+@tree.command(name="queue", description="Queues the podcast episodes")
+@app_commands.describe(name="**RESPECT CAPITALIZATION** Name of the podcast",
+                       episode_number="The number of the episode wanted",
+                       timestamp="**`HH:MM:SS` format only** Timestamp to start the episode at")
+async def queue(interaction: Interaction, name: str, episode_number: None | int = None, timestamp: None | str = None):
+    await commands.queue(interaction, name, episode_number, timestamp, db, sessionMaker(engine))
+
+
 async def getEngine():
     engine = create_async_engine(
-        "sqlite+aiosqlite:///list.sqlite", echo=True)
+        "sqlite+aiosqlite:///list.sqlite", echo=__debug__ == True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     return engine
