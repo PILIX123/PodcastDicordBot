@@ -13,8 +13,9 @@ from models.episode import Episode
 from models.playstate import Playstate
 from utils.customAudio import CustomAudio
 from database.db import Database
+from models.customExceptions import FormatError, UserNotFoundError, PodcastNotFoundError, SubscriptionNotFoundError
 
-QUEUE = dict()
+QUEUE: dict[int:list[CustomAudio]] = dict()
 
 
 async def connect(interaction: Interaction):
@@ -118,6 +119,59 @@ async def help(interaction: Interaction, command: CommandEnum):
 
 async def play(interaction: Interaction, name: str, episode_number: int | None, timestamp: str | None, db: Database, session):
     await interaction.response.defer(thinking=True)
+
+    source = None
+    episode = None
+    try:
+        source, episode = await settingAudio(interaction, db, session, name, episode_number, timestamp)
+    except (FormatError):
+        await interaction.followup.send(Messages.FormatError)
+        return
+    except (UserNotFoundError):
+        await interaction.followup.send(Messages.UserNotFound)
+        return
+    except (PodcastNotFoundError):
+        await interaction.followup.send(Messages.PodcastNotFound)
+        return
+    except (SubscriptionNotFoundError):
+        await interaction.followup.send(Messages.SubscriptionNotFound)
+        return
+
+    if interaction.guild.voice_client is None:
+        # Not tested because this function is tested and works
+        await Utils.connect(interaction)  # pragma: no coverage
+
+    if interaction.guild.voice_client.is_playing():
+        # await Utils.stopSaveAudio(interaction, db, session)
+        sources: list | None = QUEUE.get(interaction.guild_id)
+        if sources is None:
+            QUEUE.update({interaction.guild_id: [source]})
+        else:
+            sources.append(source)
+            QUEUE.update({interaction.guild_id: sources})
+
+    interaction.guild.voice_client.play(source, after=checkQueue(interaction))
+    episodeNumberName = episode.title if str(
+        episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
+    await interaction.followup.send(f"Playing {name}  \nEpisode {episodeNumberName}")
+
+
+def checkQueue(interaction: Interaction):
+    if QUEUE.get(interaction.guild_id) is not None:
+        source = QUEUE.get(interaction.guild_id).pop(0)
+        interaction.guild.voice_client.play(
+            source, after=lambda x=0: checkQueue(interaction))
+
+
+async def queue(interaction: Interaction, name: str, episodeNumber: int, timestamp: str | None, db: Database, session):
+    await interaction.response.defer()
+    source, _ = await settingAudio(interaction, db, session, name, episodeNumber, timestamp)
+    sources = QUEUE.get(interaction.guild_id)
+    sources.append(source)
+    QUEUE.update({interaction.guild_id: sources})
+
+
+async def settingAudio(interaction: Interaction, db: Database, session, name: str, episode_number: int, timestamp: str):
     podcast = await db.getPodcastFromTitle(session, name)
     user = await db.getUser(session, interaction.user.id)
     episode = None
@@ -134,21 +188,17 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
 
     if timestamp is not None:
         if len(timestamp.split(":")) != 3:
-            await interaction.followup.send(Messages.FormatError)
-            return
+            raise (FormatError)
         timestampms = Converters.hourStrToMs(timestamp)
 
     if user is None:
-        await interaction.followup.send(Messages.UserNotFound)
-        return
+        raise (UserNotFoundError)
     if podcast is None:
-        await interaction.followup.send(Messages.PodcastNotFound)
-        return
+        raise (PodcastNotFoundError)
 
     subscription = await db.getSubscriptionUser(session, user.id, podcast.id)
     if subscription is None:
-        await interaction.followup.send(Messages.SubscriptionNotFound)
-        return
+        raise (SubscriptionNotFoundError)
 
     reader = Reader(Podcast(get(podcast.url).content))
 
@@ -177,31 +227,9 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     if playstate is None:
         playstate = await db.addPlaystate(session, Playstate(episodeId=episode.id, timestamp=(0 if timestampms is None else timestampms), userId=user.id))
 
-    QUEUE.update({1: playstate})
-
-    if interaction.guild.voice_client is None:
-        # Not tested because this function is tested and works
-        await Utils.connect(interaction)  # pragma: no coverage
-
     acutalTimestamp = playstate.timestamp if timestampms is None else timestampms
     options = f"-ss {acutalTimestamp}ms"
     source = CustomAudio(reader.getEpisodeUrl(
         reverseNumber), acutalTimestamp, playstate.id, before_options=options)
 
-    if interaction.guild.voice_client.isplaying():
-        await Utils.stopSaveAudio(interaction, db, session)
-    interaction.guild.voice_client.play(source)
-    episodeNumberName = episode.title if str(
-        episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
-    await interaction.followup.send(f"Playing {name}  \nEpisode {episodeNumberName}")
-
-
-def checkQueue():
-    QUEUE.get()
-    return
-
-
-async def queue(interaction: Interaction, name: str, episodeNumber: int, timestamp: str | None, db: Database, session):
-    await interaction.response.defer()
-
-    # QUEUE.update({len(QUEUE.items())+1: playstate})
+    return source, episode

@@ -859,7 +859,7 @@ async def test_play_lastPodcastId(mocker: MockerFixture):
 
 
 @mark.asyncio
-async def test_play_stops(mocker: MockerFixture):
+async def test_play_queues(mocker: MockerFixture):
     get = mocker.patch("commands.commands.get")
     podcastMock = mocker.patch("commands.commands.Podcast")
     utils = mocker.patch("commands.commands.Utils")
