@@ -365,7 +365,7 @@ async def test_listPodcasts_userNone(mocker: MockerFixture):
 
 
 @mark.asyncio
-async def test_list(mocker: MockerFixture):
+async def test_listPodcasts(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
     mockSub1 = mocker.MagicMock()
