@@ -38,7 +38,7 @@ async def subscribe(interaction: Interaction, url: str):
 
 @tree.command(name="list", description="List all podcast you are subscribed to")
 async def listing(interaction: Interaction):
-    await commands.list(interaction, db, sessionMaker(engine))
+    await commands.listPodcasts(interaction, db, sessionMaker(engine))
 
 
 @tree.command(name="unsubscribe", description="Unsubscribes the user from the RSS feed")

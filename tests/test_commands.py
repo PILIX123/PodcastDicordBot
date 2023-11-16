@@ -337,7 +337,7 @@ async def test_subscribe_alreadySubscribed(mocker: MockerFixture):
 
 
 @mark.asyncio
-async def test_list_userNone(mocker: MockerFixture):
+async def test_listPodcasts_userNone(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
 
@@ -359,7 +359,7 @@ async def test_list_userNone(mocker: MockerFixture):
     db.getUser.return_value = None
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = None
-    await commands.list(interaction, db, "TEST_SESSION")
+    await commands.listPodcasts(interaction, db, "TEST_SESSION")
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     followup.send.assert_awaited_once_with(Messages.UserNotFound)
 
@@ -397,7 +397,7 @@ async def test_list(mocker: MockerFixture):
     db.getPodcastFromTitle.return_value = podcast
     db.addSubscription.return_value = None
     db.getPodcastBulk.return_value = [podcast, podcast2]
-    await commands.list(interaction, db, "TEST_SESSION")
+    await commands.listPodcasts(interaction, db, "TEST_SESSION")
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION", [1, 2])
     followup.send.assert_awaited_once_with(

@@ -72,7 +72,7 @@ async def subscribe(interaction: Interaction, url: str, db: Database, session):
         await interaction.followup.send(Messages.PodcastNotAdded)
 
 
-async def list(interaction: Interaction, db: Database, session):
+async def listPodcasts(interaction: Interaction, db: Database, session):
     await interaction.response.defer(thinking=True)
     user = await db.getUser(session, interaction.user.id)
 
