@@ -1,4 +1,5 @@
-from discord import Interaction
+from discord import Interaction, ButtonStyle
+from discord.ui import View, Button
 from utils.utils import Utils
 from messages.messages import Messages
 from rssreader.reader import Reader
@@ -6,14 +7,16 @@ from pyPodcastParser.Podcast import Podcast
 from requests import get
 from models.podcasts import Podcast as PodcastDto
 from models.subscription import Subscriptions
-from enums.enums import CommandEnum
+from enums.enums import CommandEnum, ConfirmationEnum
 from messages.descriptions import Description
 from utils.converters import Converters
 from models.episode import Episode
 from models.playstate import Playstate
+from models.customExceptions import FormatError, UserNotFoundError, PodcastNotFoundError, SubscriptionNotFoundError
 from utils.customAudio import CustomAudio
 from database.db import Database
-from models.customExceptions import FormatError, UserNotFoundError, PodcastNotFoundError, SubscriptionNotFoundError
+from customViews.validationView import ValidationView
+
 
 QUEUE: dict[int:list[CustomAudio]] = dict()
 
@@ -136,6 +139,9 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     except (SubscriptionNotFoundError):
         await interaction.followup.send(Messages.SubscriptionNotFound)
         return
+    except (TimeoutError):
+        await interaction.followup.send(Messages.TimeoutErrorMessage)
+        return
 
     if interaction.guild.voice_client is None:
         # Not tested because this function is tested and works
@@ -202,9 +208,18 @@ async def settingAudio(interaction: Interaction, db: Database, session, name: st
     if episode_number is None:
         episode_number = len(reader.podcast.items)
 
-    if podcast.id == user.lastPodcastId:
-        # TODO: Add button to confirm
-        episode = await db.getEpisode(session, user.lastEpisodeId)
+    if user.lastEpisodeId:
+        view = ValidationView()
+        await interaction.followup.send(Messages.PlayMostRecentEpisode, view=view)
+        await view.wait()
+
+        if view.clicked is ConfirmationEnum.Yes:
+            episode = await db.getEpisode(session, user.lastEpisodeId)
+        elif view.clicked is ConfirmationEnum.No:
+            episode = None
+        else:
+            raise (TimeoutError)
+
     if episode is None:
         episode = await db.getEpisodePodcastNumber(session, podcast.id, episode_number)
     if episode is not None:

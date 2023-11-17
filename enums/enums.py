@@ -8,3 +8,8 @@ class CommandEnum(Enum):
     Subscribe = 4
     Unsubscribe = 5
     Play = 6
+
+
+class ConfirmationEnum(Enum):
+    Yes = 1
+    No = 2

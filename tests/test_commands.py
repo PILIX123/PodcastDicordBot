@@ -1,9 +1,10 @@
 from pytest import mark
 from pytest_mock.plugin import MockerFixture
+from unittest.mock import call
 from commands import commands
 from messages.messages import Messages
 from messages.descriptions import Description
-from enums.enums import CommandEnum
+from enums.enums import CommandEnum, ConfirmationEnum
 pytest_plugins = ('pytest_asyncio',)
 
 
@@ -550,6 +551,7 @@ async def test_play(mocker: MockerFixture):
 
     user = mocker.MagicMock()
     user.id = 1
+    user.lastEpisodeId = None
 
     podcast = mocker.MagicMock()
     podcast.id = 1
@@ -674,6 +676,7 @@ async def test_play_rightTimestamp(mocker: MockerFixture):
 
     user = mocker.MagicMock()
     user.id = 1
+    user.lastEpisodeId = None
 
     podcast = mocker.MagicMock()
     podcast.id = 1
@@ -787,7 +790,7 @@ async def test_play_noSubscription(mocker: MockerFixture):
 
 
 @mark.asyncio
-async def test_play_lastPodcastId(mocker: MockerFixture):
+async def test_play_lastEpisodeId_Timeout(mocker: MockerFixture):
     get = mocker.patch("commands.commands.get")
     podcastMock = mocker.patch("commands.commands.Podcast")
 
@@ -800,6 +803,97 @@ async def test_play_lastPodcastId(mocker: MockerFixture):
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = None
+    customView.timeout = 1
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.is_playing.return_value = False
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+
+    user = mocker.MagicMock()
+    user.id = 1
+    user.lastPodcastId = 1
+    user.lastEpisodeId = 1
+
+    podcast = mocker.MagicMock()
+    podcast.id = 1
+    podcast.url = "http://test.test"
+
+    subscription = mocker.MagicMock()
+    subscription.id = 1
+    subscription.userId = 1
+    subscription.podcastId = 1
+
+    episode = mocker.MagicMock()
+    episode.id = 1
+    episode.title = "EPISODE_TITLE"
+    episode.episodeNumber = 123
+
+    playstate = mocker.MagicMock()
+    playstate.id = 1
+    playstate.timestamp = 0
+
+    db = mocker.MagicMock()
+    db.getPodcastFromTitle = mocker.async_stub()
+    db.getPodcastFromTitle.return_value = podcast
+    db.getUser = mocker.async_stub()
+    db.getUser.return_value = user
+    db.getSubscriptionUser = mocker.async_stub()
+    db.getSubscriptionUser.return_value = subscription
+    db.getEpisode = mocker.async_stub()
+    db.getEpisode.return_value = episode
+    db.getPlaystateUserEpisode = mocker.async_stub()
+    db.getPlaystateUserEpisode.return_value = playstate
+    db.updateUser = mocker.async_stub()
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
+    db.getEpisode.assert_not_awaited()
+    db.getPlaystateUserEpisode.assert_not_awaited()
+    followup.send.assert_has_awaits(
+        [call(Messages.PlayMostRecentEpisode, view=customView), call(Messages.TimeoutErrorMessage)])
+
+
+@mark.asyncio
+async def test_play_lastEpisodeId_Yes(mocker: MockerFixture):
+    get = mocker.patch("commands.commands.get")
+    podcastMock = mocker.patch("commands.commands.Podcast")
+
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    reader = mocker.patch("commands.commands.Reader")
+    reader.return_value.podcast.title = "TEST_TITLE"
+    reader.return_value.podcast.items = [1, 2, 3]
+    reader.return_value.getEpisodeUrl = mocker.stub()
+    reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
+    reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = ConfirmationEnum.Yes
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
 
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
@@ -856,6 +950,93 @@ async def test_play_lastPodcastId(mocker: MockerFixture):
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     db.getEpisode.assert_awaited_once_with("TEST_SESSION", 1)
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
+    followup.send.assert_has_awaits(
+        [call(Messages.PlayMostRecentEpisode, view=customView), call("Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE")])
+
+
+@mark.asyncio
+async def test_play_lastEpisodeId_No(mocker: MockerFixture):
+    get = mocker.patch("commands.commands.get")
+    podcastMock = mocker.patch("commands.commands.Podcast")
+
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    reader = mocker.patch("commands.commands.Reader")
+    reader.return_value.podcast.title = "TEST_TITLE"
+    reader.return_value.podcast.items = [1, 2, 3]
+    reader.return_value.getEpisodeUrl = mocker.stub()
+    reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
+    reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = ConfirmationEnum.No
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.is_playing.return_value = False
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+
+    user = mocker.MagicMock()
+    user.id = 1
+    user.lastPodcastId = 1
+    user.lastEpisodeId = 1
+
+    podcast = mocker.MagicMock()
+    podcast.id = 1
+    podcast.url = "http://test.test"
+
+    subscription = mocker.MagicMock()
+    subscription.id = 1
+    subscription.userId = 1
+    subscription.podcastId = 1
+
+    episode = mocker.MagicMock()
+    episode.id = 1
+    episode.title = "EPISODE_TITLE"
+    episode.episodeNumber = 123
+
+    playstate = mocker.MagicMock()
+    playstate.id = 1
+    playstate.timestamp = 0
+
+    db = mocker.MagicMock()
+    db.getPodcastFromTitle = mocker.async_stub()
+    db.getPodcastFromTitle.return_value = podcast
+    db.getUser = mocker.async_stub()
+    db.getUser.return_value = user
+    db.getSubscriptionUser = mocker.async_stub()
+    db.getSubscriptionUser.return_value = subscription
+    db.getEpisode = mocker.async_stub()
+    db.getEpisode.return_value = None
+    db.getEpisodePodcastNumber = mocker.async_stub()
+    db.getEpisodePodcastNumber.return_value = episode
+    db.getPlaystateUserEpisode = mocker.async_stub()
+    db.getPlaystateUserEpisode.return_value = playstate
+    db.updateUser = mocker.async_stub()
+    await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
+    db.getEpisodePodcastNumber.assert_awaited_once_with("TEST_SESSION", 1, 3)
+    db.getEpisode.assert_not_awaited()
+    db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
+    followup.send.assert_has_awaits(
+        [call(Messages.PlayMostRecentEpisode, view=customView), call("Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE")])
 
 
 @mark.asyncio
@@ -874,6 +1055,14 @@ async def test_play_CreatesQueue(mocker: MockerFixture):
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = ConfirmationEnum.Yes
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
 
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
@@ -948,6 +1137,14 @@ async def test_play_queues(mocker: MockerFixture):
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = ConfirmationEnum.Yes
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
 
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
@@ -1025,6 +1222,14 @@ async def test_queue(mocker: MockerFixture):
     reader.return_value.getEpisodeUrl = mocker.stub()
     reader.return_value.getEpisodeUrl.return_value = "http://test.test/mp3"
     reader.return_value.getEpisodeTitle.return_value = "EPISODE_TITLE"
+
+    customView = mocker.MagicMock()
+    customView.wait = mocker.async_stub()
+    customView.wait.return_value = None
+    customView.clicked = ConfirmationEnum.Yes
+
+    customViewPatch = mocker.patch("commands.commands.ValidationView")
+    customViewPatch.return_value = customView
 
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()

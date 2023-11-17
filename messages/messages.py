@@ -10,4 +10,8 @@ class Messages():
     PodcastAdded = "Podcast added"
     PodcastNotAdded = "Podcast wasn't added"
     AlreadySubscribed = "You are already subscribed to this podcast"
+    PlayMostRecentEpisode = "Do you want to play the last episode you were listening to?"
+    TimeoutErrorMessage = "The interaction timed out."
+    YesPlayLastEpisode = "Good i will play the last episode of the podcast you were listening to"
+    NoPlayLastEpisode = "Ok i will play the most recent episode of the podcast"
     def ConnectedTo(n): return f"I connected to {n}"
