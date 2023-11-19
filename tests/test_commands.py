@@ -412,7 +412,7 @@ async def test_listPodcasts(mocker: MockerFixture):
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION", [1, 2])
     interaction.edit_original_response.assert_awaited_once_with(
-        content='You are subscribed to:  \n- TEST1  \n- TEST2')
+        content='You are subscribed to: \n- TEST1 \n- TEST2')
 
 
 @mark.asyncio

@@ -86,10 +86,8 @@ async def listPodcasts(interaction: Interaction, db: Database, session):
     ids = [s.podcastId for s in user.subscriptions]
     podcasts = await db.getPodcastBulk(session, ids)
     names = [f"- {p.title}" for p in podcasts]
-    nameL = """  
-""".join(names)
-    await interaction.edit_original_response(content=f"""You are subscribed to:  
-{nameL}""")
+    nameL = """\n""".join(names)
+    await interaction.edit_original_response(content=f"""You are subscribed to: \n{nameL}""")
 
 
 async def unsubscribe(interaction: Interaction, name: str, db: Database, session):
