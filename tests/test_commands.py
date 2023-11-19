@@ -30,13 +30,14 @@ async def test_stop_connected(mocker: MockerFixture):
     guild.voice_client = "t"
 
     interaction = mocker.MagicMock()
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.response = response
     interaction.guild = guild
     await commands.stop(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_awaited_once_with(
         interaction, "TEST_DB", "TEST_SESSION")
-    followup.send.assert_awaited_with(Messages.AudioSaved)
+    interaction.edit_original_response.assert_awaited_with(
+        content=Messages.AudioSaved)
 
 
 @mark.asyncio
@@ -53,12 +54,13 @@ async def test_stop_notConnected(mocker: MockerFixture):
     guild.voice_client = None
 
     interaction = mocker.MagicMock()
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.response = response
     interaction.guild = guild
     await commands.stop(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_not_awaited()
-    followup.send.assert_awaited_with(Messages.NotConnected)
+    interaction.edit_original_response.assert_awaited_with(
+        content=Messages.NotConnected)
 
 
 @mark.asyncio
@@ -78,14 +80,15 @@ async def test_disconnect_Connected(mocker: MockerFixture):
     guild.voice_client = voice_client
 
     interaction = mocker.MagicMock()
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.response = response
     interaction.guild = guild
 
     await commands.disconnect(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_awaited_once_with(
         interaction, "TEST_DB", "TEST_SESSION")
-    followup.send.assert_awaited_with(Messages.Disconnected)
+    interaction.edit_original_response.assert_awaited_with(
+        content=Messages.Disconnected)
 
 
 @mark.asyncio
@@ -102,12 +105,13 @@ async def test_disconnect_notConnected(mocker: MockerFixture):
     guild.voice_client = None
 
     interaction = mocker.async_stub()
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.response = response
     interaction.guild = guild
     await commands.disconnect(interaction, "TEST_DB", "TEST_SESSION")
     utils.stopSaveAudio.assert_not_awaited()
-    followup.send.assert_awaited_with(Messages.NotConnected)
+    interaction.edit_original_response.assert_awaited_with(
+        content=Messages.NotConnected)
 
 
 def setupMocks(mocker):
@@ -143,7 +147,7 @@ def setupMocks(mocker):
     guild.voice_client = None
 
     interaction = mocker.MagicMock()
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.response = response
     interaction.guild = guild
     interaction.user = discordUser
@@ -188,7 +192,8 @@ async def test_subscribe(mocker: MockerFixture):
         "TEST_SESSION", "TEST_TITLE")
     db.addSubscription.assert_awaited_once_with(
         "TEST_SESSION", "TEST_SUBSCRIPTION")
-    followup.send.assert_awaited_once_with(Messages.PodcastAdded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.PodcastAdded)
 
 
 @mark.asyncio
@@ -226,7 +231,8 @@ async def test_subscribe_userNone(mocker: MockerFixture):
         "TEST_SESSION", "TEST_TITLE")
     db.addSubscription.assert_awaited_once_with(
         "TEST_SESSION", "TEST_SUBSCRIPTION")
-    followup.send.assert_awaited_once_with(Messages.PodcastAdded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.PodcastAdded)
 
 
 @mark.asyncio
@@ -266,7 +272,8 @@ async def test_subscribe_podcastNone(mocker: MockerFixture):
     db.addPodcast.assert_awaited_once_with("TEST_SESSION", "TEST_PODCAST")
     db.addSubscription.assert_awaited_once_with(
         "TEST_SESSION", "TEST_SUBSCRIPTION")
-    followup.send.assert_awaited_once_with(Messages.PodcastAdded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.PodcastAdded)
 
 
 @mark.asyncio
@@ -305,7 +312,8 @@ async def test_subscribe_subscriptionNone(mocker: MockerFixture):
     db.addPodcast.assert_not_awaited()
     db.addSubscription.assert_awaited_once_with(
         "TEST_SESSION", "TEST_SUBSCRIPTION")
-    followup.send.assert_awaited_once_with(Messages.PodcastNotAdded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.PodcastNotAdded)
 
 
 @mark.asyncio
@@ -333,7 +341,8 @@ async def test_subscribe_alreadySubscribed(mocker: MockerFixture):
     db.getUser.return_value = user
     db.getPodcastFromTitle.return_value = podcast
     await commands.subscribe(interaction, "TEST_URL", db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with(Messages.AlreadySubscribed)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.AlreadySubscribed)
     db.addSubscription.assert_not_awaited()
 
 
@@ -362,7 +371,8 @@ async def test_listPodcasts_userNone(mocker: MockerFixture):
     db.addSubscription.return_value = None
     await commands.listPodcasts(interaction, db, "TEST_SESSION")
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
-    followup.send.assert_awaited_once_with(Messages.UserNotFound)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.UserNotFound)
 
 
 @mark.asyncio
@@ -401,8 +411,8 @@ async def test_listPodcasts(mocker: MockerFixture):
     await commands.listPodcasts(interaction, db, "TEST_SESSION")
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION", [1, 2])
-    followup.send.assert_awaited_once_with(
-        'You are subscribed to:  \n- TEST1  \n- TEST2')
+    interaction.edit_original_response.assert_awaited_once_with(
+        content='You are subscribed to:  \n- TEST1  \n- TEST2')
 
 
 @mark.asyncio
@@ -438,7 +448,8 @@ async def test_unsubscribe(mocker: MockerFixture):
     db.getPodcastFromTitle.return_value = podcast
     db.getSubscriptionUser.return_value = mockSub1
     await commands.unsubscribe(interaction, "TEST1", db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with("Unsubscribed from TEST1")
+    interaction.edit_original_response.assert_awaited_once_with(
+        content="Unsubscribed from TEST1")
     db.getPodcastFromTitle.assert_awaited_once_with("TEST_SESSION", "TEST1")
     db.getSubscriptionUser.assert_awaited_once_with("TEST_SESSION", 123, 1)
     db.deleteSubscription.assert_awaited_once_with("TEST_SESSION", mockSub1)
@@ -511,9 +522,6 @@ async def test_play(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
-
     voice_client = mocker.MagicMock()
     voice_client.play = mocker.async_stub()
     voice_client.is_playing.return_value = False
@@ -527,8 +535,8 @@ async def test_play(mocker: MockerFixture):
     interaction = mocker.MagicMock()
     interaction.response = response
     interaction.guild = guild
-    interaction.followup = followup
     interaction.user = discordUser
+    interaction.edit_original_response = mocker.async_stub()
 
     reader = mocker.patch("commands.commands.Reader")
     reader.return_value.podcast.title = "TEST_TITLE"
@@ -601,8 +609,8 @@ async def test_play(mocker: MockerFixture):
     db.addPlaystate.assert_awaited_once_with("TEST_SESSION", "TEST_PLAYSTATE")
     customAudio.assert_called_once_with(
         "http://test.test/mp3", 0, 1, before_options="-ss 0ms")
-    followup.send.assert_awaited_once_with(
-        "Playing TEST_TITLE  \nEpisode 123: EPISODE_TITLE")
+    interaction.edit_original_response.assert_awaited_once_with(
+        content="Playing TEST_TITLE  \nEpisode 123: EPISODE_TITLE", view=None)
 
 
 @mark.asyncio
@@ -615,7 +623,7 @@ async def test_play_wrongTimestamp(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
 
     db = mocker.MagicMock()
     db.getPodcastFromTitle = mocker.async_stub()
@@ -623,7 +631,8 @@ async def test_play_wrongTimestamp(mocker: MockerFixture):
     db.getUser = mocker.async_stub()
     db.getUser.return_value = None
     await commands.play(interaction, "TEST_NAME", None, "2:2", db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with(Messages.FormatError)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.FormatError, view=None)
 
 
 @mark.asyncio
@@ -651,7 +660,7 @@ async def test_play_rightTimestamp(mocker: MockerFixture):
     interaction = mocker.MagicMock()
     interaction.response = response
     interaction.guild = guild
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.user = discordUser
 
     reader = mocker.patch("commands.commands.Reader")
@@ -724,7 +733,7 @@ async def test_play_noUser(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
 
     db = mocker.MagicMock()
     db.getPodcastFromTitle = mocker.async_stub()
@@ -732,7 +741,8 @@ async def test_play_noUser(mocker: MockerFixture):
     db.getUser = mocker.async_stub()
     db.getUser.return_value = None
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with(Messages.UserNotFound)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.UserNotFound, view=None)
 
 
 @mark.asyncio
@@ -745,7 +755,7 @@ async def test_play_noPodcast(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
 
     user = mocker.MagicMock()
     user.id = 1
@@ -756,7 +766,8 @@ async def test_play_noPodcast(mocker: MockerFixture):
     db.getUser = mocker.async_stub()
     db.getUser.return_value = user
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with(Messages.PodcastNotFound)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.PodcastNotFound, view=None)
 
 
 @mark.asyncio
@@ -769,7 +780,7 @@ async def test_play_noSubscription(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
 
     user = mocker.MagicMock()
     user.id = 1
@@ -786,7 +797,8 @@ async def test_play_noSubscription(mocker: MockerFixture):
     db.getSubscriptionUser = mocker.async_stub()
     db.getSubscriptionUser.return_value = None
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
-    followup.send.assert_awaited_once_with(Messages.SubscriptionNotFound)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.SubscriptionNotFound, view=None)
 
 
 @mark.asyncio
@@ -827,7 +839,7 @@ async def test_play_lastEpisodeId_Timeout(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
 
     user = mocker.MagicMock()
@@ -868,8 +880,8 @@ async def test_play_lastEpisodeId_Timeout(mocker: MockerFixture):
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     db.getEpisode.assert_not_awaited()
     db.getPlaystateUserEpisode.assert_not_awaited()
-    followup.send.assert_has_awaits(
-        [call(Messages.PlayMostRecentEpisode, view=customView), call(Messages.TimeoutErrorMessage)])
+    interaction.edit_original_response.assert_has_awaits(
+        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content=Messages.TimeoutErrorMessage, view=None)])
 
 
 @mark.asyncio
@@ -909,7 +921,7 @@ async def test_play_lastEpisodeId_Yes(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
 
     user = mocker.MagicMock()
@@ -950,8 +962,8 @@ async def test_play_lastEpisodeId_Yes(mocker: MockerFixture):
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     db.getEpisode.assert_awaited_once_with("TEST_SESSION", 1)
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
-    followup.send.assert_has_awaits(
-        [call(Messages.PlayMostRecentEpisode, view=customView), call("Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE")])
+    interaction.edit_original_response.assert_has_awaits(
+        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE", view=None)])
 
 
 @mark.asyncio
@@ -991,7 +1003,7 @@ async def test_play_lastEpisodeId_No(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
 
     user = mocker.MagicMock()
@@ -1035,8 +1047,8 @@ async def test_play_lastEpisodeId_No(mocker: MockerFixture):
     db.getEpisodePodcastNumber.assert_awaited_once_with("TEST_SESSION", 1, 3)
     db.getEpisode.assert_not_awaited()
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
-    followup.send.assert_has_awaits(
-        [call(Messages.PlayMostRecentEpisode, view=customView), call("Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE")])
+    interaction.edit_original_response.assert_has_awaits(
+        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE", view=None)])
 
 
 @mark.asyncio
@@ -1079,7 +1091,7 @@ async def test_play_CreatesQueue(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
 
     user = mocker.MagicMock()
@@ -1149,9 +1161,6 @@ async def test_play_queues(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
 
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
-
     voice_client = mocker.MagicMock()
     voice_client.is_playing = mocker.stub()
     voice_client.is_playing.return_value = True
@@ -1161,7 +1170,7 @@ async def test_play_queues(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
     interaction.guild_id = 1111
 
@@ -1246,7 +1255,7 @@ async def test_queue(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
     interaction.guild_id = 1111
 
@@ -1311,28 +1320,23 @@ async def test_fastforward_success(mocker: MockerFixture):
     guild = mocker.MagicMock()
     guild.voice_client = voice_client
 
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
-
     interaction = mocker.MagicMock()
     interaction.response = response
     interaction.guild = guild
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     await commands.fastforward(interaction)
     customAudio.assert_called_with(
         "TEST_URL", 31000, 1, before_options=f"-ss {31000}ms")
     voice_client.stop.assert_called_once()
     voice_client.play.assert_called_once_with("TEST_CUSTOM_AUDIO")
-    followup.send.assert_awaited_once_with(Messages.FastForwarded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.FastForwarded)
 
 
 @mark.asyncio
 async def test_fastforward_fail(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
-
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
 
     voice_client = mocker.MagicMock()
     voice_client.source = None
@@ -1341,11 +1345,12 @@ async def test_fastforward_fail(mocker: MockerFixture):
     guild.voice_client = voice_client
 
     interaction = mocker.MagicMock()
-    interaction.response = response
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     interaction.guild = guild
+    interaction.response = response
     await commands.fastforward(interaction)
-    followup.send.assert_awaited_once_with(Messages.NotFastForwarded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.NotFastForwarded)
 
 
 @mark.asyncio
@@ -1369,28 +1374,23 @@ async def test_rewind_success(mocker: MockerFixture):
     guild = mocker.MagicMock()
     guild.voice_client = voice_client
 
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
-
     interaction = mocker.MagicMock()
     interaction.response = response
     interaction.guild = guild
-    interaction.followup = followup
+    interaction.edit_original_response = mocker.async_stub()
     await commands.rewind(interaction)
     customAudio.assert_called_with(
         "TEST_URL", 15000, 1, before_options=f"-ss {15000}ms")
     voice_client.stop.assert_called_once()
     voice_client.play.assert_called_once_with("TEST_CUSTOM_AUDIO")
-    followup.send.assert_awaited_once_with(Messages.Rewinded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.Rewinded)
 
 
 @mark.asyncio
 async def test_rewind_fail(mocker: MockerFixture):
     response = mocker.MagicMock()
     response.defer = mocker.async_stub()
-
-    followup = mocker.MagicMock()
-    followup.send = mocker.async_stub()
 
     voice_client = mocker.MagicMock()
     voice_client.source = None
@@ -1400,7 +1400,8 @@ async def test_rewind_fail(mocker: MockerFixture):
 
     interaction = mocker.MagicMock()
     interaction.response = response
-    interaction.followup = followup
     interaction.guild = guild
+    interaction.edit_original_response = mocker.async_stub()
     await commands.rewind(interaction)
-    followup.send.assert_awaited_once_with(Messages.NotRewinded)
+    interaction.edit_original_response.assert_awaited_once_with(
+        content=Messages.NotRewinded)

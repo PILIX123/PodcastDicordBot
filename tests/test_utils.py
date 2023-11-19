@@ -78,9 +78,11 @@ async def test_connect_SuccessSend(mocker: MockerFixture):
     response.send_message = mocker.async_stub()
     followup.send = mocker.async_stub()
     mock = MockInteraction(user=user, response=response, followup=followup)
+    mock.edit_original_response = mocker.async_stub()
     await Utils.connect(mock)
     response.send_message.assert_not_awaited()
-    followup.send.assert_awaited_with(Messages.ConnectedTo("TEST"))
+    mock.edit_original_response.assert_awaited_with(
+        content=Messages.ConnectedTo("TEST"))
     user.voice.channel.connect.assert_awaited()
 
 
@@ -92,9 +94,12 @@ async def test_connect_NotConnectSend(mocker: MockerFixture):
     response = mocker.patch("discord.InteractionResponse")
     response.send_message = mocker.async_stub()
     followup.send = mocker.async_stub()
-    await Utils.connect(MockInteraction(user=user, response=response, followup=followup))
+    mock = MockInteraction(user=user, response=response, followup=followup)
+    mock.edit_original_response = mocker.async_stub()
+    await Utils.connect(mock)
     response.send_message.assert_not_awaited()
-    followup.send.assert_awaited_with(Messages.NotConnected)
+    mock.edit_original_response.assert_awaited_with(
+        content=Messages.NotConnected)
 
 
 @mark.asyncio
@@ -134,8 +139,10 @@ async def test_connect_ExceptSend(mocker: MockerFixture):
     user.voice.channel.connect.side_effect = Exception()
     followup.send = mocker.async_stub()
     mock = MockInteraction(user=user, response=response, followup=followup)
+    mock.edit_original_response = mocker.async_stub()
     await Utils.connect(mock)
-    followup.send.assert_awaited_with(Messages.ErrorConnecting)
+    mock.edit_original_response.assert_awaited_with(
+        content=Messages.ErrorConnecting)
 
 
 @mark.asyncio

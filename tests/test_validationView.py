@@ -15,7 +15,8 @@ async def test_yes(mocker: MockerFixture):
     vv = ValidationView()
     await vv.yes.callback(interaction=interaction)
     assert (vv.clicked is ConfirmationEnum.Yes)
-    response.send_message.assert_awaited_once_with(Messages.YesPlayLastEpisode)
+    response.send_message.assert_awaited_once_with(
+        Messages.YesPlayLastEpisode, ephemeral=True)
 
 
 @mark.asyncio
@@ -28,4 +29,5 @@ async def test_no(mocker: MockerFixture):
     vv = ValidationView()
     await vv.no.callback(interaction=interaction)
     assert (vv.clicked is ConfirmationEnum.No)
-    response.send_message.assert_awaited_once_with(Messages.NoPlayLastEpisode)
+    response.send_message.assert_awaited_once_with(
+        Messages.NoPlayLastEpisode, ephemeral=True)

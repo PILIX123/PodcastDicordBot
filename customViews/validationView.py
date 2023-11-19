@@ -9,12 +9,12 @@ class ValidationView(View):
 
     @button(label="Yes", style=ButtonStyle.success)
     async def yes(self, interaction: Interaction, button: Button):
-        await interaction.response.send_message(Messages.YesPlayLastEpisode)
+        await interaction.response.send_message(Messages.YesPlayLastEpisode, ephemeral=True)
         self.clicked = ConfirmationEnum.Yes
         self.stop()
 
     @button(label="No", style=ButtonStyle.danger)
     async def no(self, interaction: Interaction, button: Button):
-        await interaction.response.send_message(Messages.NoPlayLastEpisode)
+        await interaction.response.send_message(Messages.NoPlayLastEpisode, ephemeral=True)
         self.clicked = ConfirmationEnum.No
         self.stop()

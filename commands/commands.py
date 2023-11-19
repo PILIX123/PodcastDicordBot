@@ -29,9 +29,9 @@ async def stop(interaction: Interaction, db: Database, session):
     await interaction.response.defer(thinking=True)
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db, session)
-        await interaction.followup.send(Messages.AudioSaved)
+        await interaction.edit_original_response(content=Messages.AudioSaved)
         return
-    await interaction.followup.send(Messages.NotConnected)
+    await interaction.edit_original_response(content=Messages.NotConnected)
 
 
 async def disconnect(interaction: Interaction, db: Database, session):
@@ -39,9 +39,9 @@ async def disconnect(interaction: Interaction, db: Database, session):
     if (interaction.guild.voice_client is not None):
         await Utils.stopSaveAudio(interaction, db, session)
         await interaction.guild.voice_client.disconnect()
-        await interaction.followup.send(Messages.Disconnected)
+        await interaction.edit_original_response(content=Messages.Disconnected)
     else:
-        await interaction.followup.send(Messages.NotConnected)
+        await interaction.edit_original_response(content=Messages.NotConnected)
 
 
 async def subscribe(interaction: Interaction, url: str, db: Database, session):
@@ -64,15 +64,15 @@ async def subscribe(interaction: Interaction, url: str, db: Database, session):
     s = Subscriptions(userId=user.id, podcastId=podcast.id)
     for sub in user.subscriptions:
         if sub.podcastId == s.podcastId:
-            await interaction.followup.send(Messages.AlreadySubscribed)
+            await interaction.edit_original_response(content=Messages.AlreadySubscribed)
             return
 
     subscription = await db.addSubscription(session, s)
 
     if subscription:
-        await interaction.followup.send(Messages.PodcastAdded)
+        await interaction.edit_original_response(content=Messages.PodcastAdded)
     else:
-        await interaction.followup.send(Messages.PodcastNotAdded)
+        await interaction.edit_original_response(content=Messages.PodcastNotAdded)
 
 
 async def listPodcasts(interaction: Interaction, db: Database, session):
@@ -80,7 +80,7 @@ async def listPodcasts(interaction: Interaction, db: Database, session):
     user = await db.getUser(session, interaction.user.id)
 
     if user is None:
-        await interaction.followup.send(Messages.UserNotFound)
+        await interaction.edit_original_response(content=Messages.UserNotFound)
         return
 
     ids = [s.id for s in user.subscriptions]
@@ -90,7 +90,7 @@ async def listPodcasts(interaction: Interaction, db: Database, session):
 """.join(names)
     t = f"""You are subscribed to:  
 {nameL}"""
-    await interaction.followup.send(f"""You are subscribed to:  
+    await interaction.edit_original_response(content=f"""You are subscribed to:  
 {nameL}""")
 
 
@@ -101,7 +101,7 @@ async def unsubscribe(interaction: Interaction, name: str, db: Database, session
     podcast = await db.getPodcastFromTitle(session, name)
     subscription = await db.getSubscriptionUser(session, user.id, podcast.id)
     await db.deleteSubscription(session, subscription)
-    await interaction.followup.send(f"Unsubscribed from {name}")
+    await interaction.edit_original_response(content=f"Unsubscribed from {name}")
 
 
 async def help(interaction: Interaction, command: CommandEnum):
@@ -128,19 +128,19 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     try:
         source, episode = await settingAudio(interaction, db, session, name, episode_number, timestamp)
     except (FormatError):
-        await interaction.followup.send(Messages.FormatError)
+        await interaction.edit_original_response(content=Messages.FormatError, view=None)
         return
     except (UserNotFoundError):
-        await interaction.followup.send(Messages.UserNotFound)
+        await interaction.edit_original_response(content=Messages.UserNotFound, view=None)
         return
     except (PodcastNotFoundError):
-        await interaction.followup.send(Messages.PodcastNotFound)
+        await interaction.edit_original_response(content=Messages.PodcastNotFound, view=None)
         return
     except (SubscriptionNotFoundError):
-        await interaction.followup.send(Messages.SubscriptionNotFound)
+        await interaction.edit_original_response(content=Messages.SubscriptionNotFound, view=None)
         return
     except (TimeoutError):
-        await interaction.followup.send(Messages.TimeoutErrorMessage)
+        await interaction.edit_original_response(content=Messages.TimeoutErrorMessage, view=None)
         return
 
     if interaction.guild.voice_client is None:
@@ -158,7 +158,8 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     interaction.guild.voice_client.play(source, after=checkQueue(interaction))
     episodeNumberName = episode.title if str(
         episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
-    await interaction.followup.send(f"Playing {name}  \nEpisode {episodeNumberName}")
+    await interaction.edit_original_response(content=Messages.Playing(name, episodeNumberName), view=None)
+    # await interaction.followup.send(Messages.Playing(name,episodeNumberName))
 
 
 def checkQueue(interaction: Interaction):
@@ -185,9 +186,9 @@ async def fastforward(interaction: Interaction):
                                  currentSource.playstateId, before_options=f"-ss {new_timestamp}ms")
         interaction.guild.voice_client.stop()
         interaction.guild.voice_client.play(new_source)
-        await interaction.followup.send(Messages.FastForwarded)
+        await interaction.edit_original_response(content=Messages.FastForwarded)
         return
-    await interaction.followup.send(Messages.NotFastForwarded)
+    await interaction.edit_original_response(content=Messages.NotFastForwarded)
 
 
 async def rewind(interaction: Interaction):
@@ -199,9 +200,10 @@ async def rewind(interaction: Interaction):
                                  currentSource.playstateId, before_options=f"-ss {new_timestamp}ms")
         interaction.guild.voice_client.stop()
         interaction.guild.voice_client.play(new_source)
-        await interaction.followup.send(Messages.Rewinded)
+        await interaction.edit_original_response(content=Messages.Rewinded)
+        # await interaction.followup.send()
         return
-    await interaction.followup.send(Messages.NotRewinded)
+    await interaction.edit_original_response(content=Messages.NotRewinded)
 
 
 async def settingAudio(interaction: Interaction, db: Database, session, name: str, episode_number: int, timestamp: str):
@@ -235,7 +237,7 @@ async def settingAudio(interaction: Interaction, db: Database, session, name: st
 
     if user.lastEpisodeId:
         view = ValidationView()
-        await interaction.followup.send(Messages.PlayMostRecentEpisode, view=view)
+        await interaction.edit_original_response(content=Messages.PlayMostRecentEpisode, view=view)
         await view.wait()
 
         if view.clicked is ConfirmationEnum.Yes:
