@@ -1299,8 +1299,8 @@ async def test_fastforward_success(mocker: MockerFixture):
     response.defer = mocker.async_stub()
 
     source = mocker.MagicMock()
-    source.timestamp = 1000
-    source.playstate_id = 1
+    source.currentTimestamp = 1000
+    source.playstateId = 1
     source.url = "TEST_URL"
 
     voice_client = mocker.MagicMock()
@@ -1357,8 +1357,8 @@ async def test_rewind_success(mocker: MockerFixture):
     response.defer = mocker.async_stub()
 
     source = mocker.MagicMock()
-    source.timestamp = 30000
-    source.playstate_id = 1
+    source.currentTimestamp = 30000
+    source.playstateId = 1
     source.url = "TEST_URL"
 
     voice_client = mocker.MagicMock()

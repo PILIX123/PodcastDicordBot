@@ -178,11 +178,11 @@ async def queue(interaction: Interaction, name: str, episodeNumber: int, timesta
 
 async def fastforward(interaction: Interaction):
     await interaction.response.defer(thinking=True)
-    currentSource = interaction.guild.voice_client.source
+    currentSource: CustomAudio = interaction.guild.voice_client.source
     if currentSource:
-        new_timestamp = currentSource.timestamp + 30*1000
+        new_timestamp = currentSource.currentTimestamp + 30*1000
         new_source = CustomAudio(currentSource.url, new_timestamp,
-                                 currentSource.playstate_id, before_options=f"-ss {new_timestamp}ms")
+                                 currentSource.playstateId, before_options=f"-ss {new_timestamp}ms")
         interaction.guild.voice_client.stop()
         interaction.guild.voice_client.play(new_source)
         await interaction.followup.send(Messages.FastForwarded)
@@ -194,9 +194,9 @@ async def rewind(interaction: Interaction):
     await interaction.response.defer(thinking=True)
     currentSource = interaction.guild.voice_client.source
     if currentSource:
-        new_timestamp = currentSource.timestamp - 15*1000
-        new_source = CustomAudio(
-            currentSource.url, new_timestamp, currentSource.playstate_id, before_options=f"-ss {new_timestamp}ms")
+        new_timestamp = currentSource.currentTimestamp - 15*1000
+        new_source = CustomAudio(currentSource.url, new_timestamp,
+                                 currentSource.playstateId, before_options=f"-ss {new_timestamp}ms")
         interaction.guild.voice_client.stop()
         interaction.guild.voice_client.play(new_source)
         await interaction.followup.send(Messages.Rewinded)
