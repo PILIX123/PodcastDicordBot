@@ -1200,10 +1200,10 @@ async def test_play_queues(mocker: MockerFixture):
     db.getPlaystateUserEpisode = mocker.async_stub()
     db.getPlaystateUserEpisode.return_value = playstate
     db.updateUser = mocker.async_stub()
-    commands.QUEUE = {1111: [1]}
+    commands.QUEUE = {1111: [1, 2]}
     await commands.play(interaction, "TEST_NAME", None, None, db, "TEST_SESSION")
     # Will work because of the after check queue
-    assert (commands.QUEUE == {1111: ["TEST_CUSTOM_AUDIO"]})
+    assert (commands.QUEUE == {1111: ["TEST_CUSTOM_AUDIO", 2]})
 
 
 @mark.asyncio
@@ -1285,6 +1285,6 @@ async def test_queue(mocker: MockerFixture):
     db.getPlaystateUserEpisode = mocker.async_stub()
     db.getPlaystateUserEpisode.return_value = playstate
     db.updateUser = mocker.async_stub()
-    commands.QUEUE = {1111: [1]}
+    commands.QUEUE = {1111: [1, 2]}
     await commands.queue(interaction, "TEST_NAME", 456, None, db, "TEST_SESSION")
-    assert (commands.QUEUE == {1111: [1, "TEST_CUSTOM_AUDIO"]})
+    assert (commands.QUEUE == {1111: [1, "TEST_CUSTOM_AUDIO", 2]})

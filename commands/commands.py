@@ -152,7 +152,7 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
         if sources is None:
             QUEUE.update({interaction.guild_id: [source]})
         else:
-            sources.append(source)
+            sources.insert(1, source)
             QUEUE.update({interaction.guild_id: sources})
 
     interaction.guild.voice_client.play(source, after=checkQueue(interaction))
@@ -171,8 +171,8 @@ def checkQueue(interaction: Interaction):
 async def queue(interaction: Interaction, name: str, episodeNumber: int, timestamp: str | None, db: Database, session):
     await interaction.response.defer()
     source, _ = await settingAudio(interaction, db, session, name, episodeNumber, timestamp)
-    sources = QUEUE.get(interaction.guild_id)
-    sources.append(source)
+    sources: list = QUEUE.get(interaction.guild_id)
+    sources.insert(1, source)
     QUEUE.update({interaction.guild_id: sources})
 
 
