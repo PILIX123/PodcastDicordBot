@@ -1,5 +1,4 @@
-from discord import Interaction, ButtonStyle
-from discord.ui import View, Button
+from discord import Interaction
 from utils.utils import Utils
 from messages.messages import Messages
 from rssreader.reader import Reader
@@ -62,10 +61,11 @@ async def subscribe(interaction: Interaction, url: str, db: Database, session):
         podcast = await db.addPodcast(session, PodcastDto(url=url, title=reader.podcast.title))
 
     s = Subscriptions(userId=user.id, podcastId=podcast.id)
-    for sub in user.subscriptions:
-        if sub.podcastId == s.podcastId:
-            await interaction.edit_original_response(content=Messages.AlreadySubscribed)
-            return
+    if user.subscriptions is not None:
+        for sub in user.subscriptions:
+            if sub.podcastId == s.podcastId:
+                await interaction.edit_original_response(content=Messages.AlreadySubscribed)
+                return
 
     subscription = await db.addSubscription(session, s)
 
@@ -83,13 +83,11 @@ async def listPodcasts(interaction: Interaction, db: Database, session):
         await interaction.edit_original_response(content=Messages.UserNotFound)
         return
 
-    ids = [s.id for s in user.subscriptions]
+    ids = [s.podcastId for s in user.subscriptions]
     podcasts = await db.getPodcastBulk(session, ids)
     names = [f"- {p.title}" for p in podcasts]
     nameL = """  
 """.join(names)
-    t = f"""You are subscribed to:  
-{nameL}"""
     await interaction.edit_original_response(content=f"""You are subscribed to:  
 {nameL}""")
 
@@ -212,6 +210,9 @@ async def settingAudio(interaction: Interaction, db: Database, session, name: st
     # TODO
     # add error handling
     # mark completed
+    # add play button to list of podcast
+    # add "search" within subscriptions of users
+    # /controls - add a stop, play, fast forward and rewind button
 
     if timestamp is not None:
         if len(timestamp.split(":")) != 3:

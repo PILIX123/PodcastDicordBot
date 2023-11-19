@@ -380,9 +380,9 @@ async def test_listPodcasts(mocker: MockerFixture):
     user = mocker.MagicMock()
     user.id = 123
     mockSub1 = mocker.MagicMock()
-    mockSub1.id = 1
+    mockSub1.podcastId = 1
     mockSub2 = mocker.MagicMock()
-    mockSub2.id = 2
+    mockSub2.podcastId = 2
 
     user.subscriptions = [mockSub1, mockSub2]
 
