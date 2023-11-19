@@ -144,7 +144,6 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
         return
 
     if interaction.guild.voice_client is None:
-        # Not tested because this function is tested and works
         await Utils.connect(interaction)  # pragma: no coverage
 
     if interaction.guild.voice_client.is_playing():
@@ -159,7 +158,6 @@ async def play(interaction: Interaction, name: str, episode_number: int | None, 
     episodeNumberName = episode.title if str(
         episode.episodeNumber) in episode.title else f"{episode.episodeNumber}: {episode.title}"
     await interaction.edit_original_response(content=Messages.Playing(name, episodeNumberName), view=None)
-    # await interaction.followup.send(Messages.Playing(name,episodeNumberName))
 
 
 def checkQueue(interaction: Interaction):
@@ -201,7 +199,6 @@ async def rewind(interaction: Interaction):
         interaction.guild.voice_client.stop()
         interaction.guild.voice_client.play(new_source)
         await interaction.edit_original_response(content=Messages.Rewinded)
-        # await interaction.followup.send()
         return
     await interaction.edit_original_response(content=Messages.NotRewinded)
 

@@ -17,7 +17,6 @@ class Utils():
                 await interaction.response.send_message(Messages.ConnectedTo(channel.name))
             else:
                 await interaction.edit_original_response(content=Messages.ConnectedTo(channel.name))
-                # await interaction.followup.send(Messages.ConnectedTo(channel.name))
             try:
                 await channel.connect()
                 return
