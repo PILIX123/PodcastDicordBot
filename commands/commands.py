@@ -210,10 +210,7 @@ async def settingAudio(interaction: Interaction, db: Database, session, name: st
     episode = None
     playstate = None
     timestampms = None
-    # TODO /ff to skip 30 sec ahead and /bw to rewind 15 sec
-    # TODO:
-    # Une commande fast-forward et back-ward
-    # add completed to playstate, ask user to replay with buttons
+    # TODO
     # add error handling
     # mark completed
 

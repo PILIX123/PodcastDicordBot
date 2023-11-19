@@ -1288,3 +1288,119 @@ async def test_queue(mocker: MockerFixture):
     commands.QUEUE = {1111: [1, 2]}
     await commands.queue(interaction, "TEST_NAME", 456, None, db, "TEST_SESSION")
     assert (commands.QUEUE == {1111: [1, "TEST_CUSTOM_AUDIO", 2]})
+
+
+@mark.asyncio
+async def test_fastforward_success(mocker: MockerFixture):
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    source = mocker.MagicMock()
+    source.timestamp = 1000
+    source.playstate_id = 1
+    source.url = "TEST_URL"
+
+    voice_client = mocker.MagicMock()
+    voice_client.source = source
+    voice_client.stop = mocker.stub()
+    voice_client.play = mocker.stub()
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.guild = guild
+    interaction.followup = followup
+    await commands.fastforward(interaction)
+    customAudio.assert_called_with(
+        "TEST_URL", 31000, 1, before_options=f"-ss {31000}ms")
+    voice_client.stop.assert_called_once()
+    voice_client.play.assert_called_once_with("TEST_CUSTOM_AUDIO")
+    followup.send.assert_awaited_once_with(Messages.FastForwarded)
+
+
+@mark.asyncio
+async def test_fastforward_fail(mocker: MockerFixture):
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.source = None
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+    await commands.fastforward(interaction)
+    followup.send.assert_awaited_once_with(Messages.NotFastForwarded)
+
+
+@mark.asyncio
+async def test_rewind_success(mocker: MockerFixture):
+    customAudio = mocker.patch("commands.commands.CustomAudio")
+    customAudio.return_value = "TEST_CUSTOM_AUDIO"
+
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    source = mocker.MagicMock()
+    source.timestamp = 30000
+    source.playstate_id = 1
+    source.url = "TEST_URL"
+
+    voice_client = mocker.MagicMock()
+    voice_client.source = source
+    voice_client.stop = mocker.stub()
+    voice_client.play = mocker.stub()
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.guild = guild
+    interaction.followup = followup
+    await commands.rewind(interaction)
+    customAudio.assert_called_with(
+        "TEST_URL", 15000, 1, before_options=f"-ss {15000}ms")
+    voice_client.stop.assert_called_once()
+    voice_client.play.assert_called_once_with("TEST_CUSTOM_AUDIO")
+    followup.send.assert_awaited_once_with(Messages.Rewinded)
+
+
+@mark.asyncio
+async def test_rewind_fail(mocker: MockerFixture):
+    response = mocker.MagicMock()
+    response.defer = mocker.async_stub()
+
+    followup = mocker.MagicMock()
+    followup.send = mocker.async_stub()
+
+    voice_client = mocker.MagicMock()
+    voice_client.source = None
+
+    guild = mocker.MagicMock()
+    guild.voice_client = voice_client
+
+    interaction = mocker.MagicMock()
+    interaction.response = response
+    interaction.followup = followup
+    interaction.guild = guild
+    await commands.rewind(interaction)
+    followup.send.assert_awaited_once_with(Messages.NotRewinded)
