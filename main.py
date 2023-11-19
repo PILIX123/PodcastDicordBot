@@ -69,6 +69,16 @@ async def queue(interaction: Interaction, name: str, episode_number: None | int,
     await commands.queue(interaction, name, episode_number, timestamp, db, sessionMaker(engine))
 
 
+@tree.command(name="fastforward", description="Skips the playing track 30 seconds")
+async def ff(interaction: Interaction):
+    await commands.fastforward(interaction)
+
+
+@tree.command(name="rewind", description="Rewinds the playing track by 15 seconds")
+async def rw(interaction: Interaction):
+    await commands.rewind(interaction)
+
+
 async def getEngine():
     engine = create_async_engine(
         "sqlite+aiosqlite:///list.sqlite", echo=__debug__ == True)

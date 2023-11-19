@@ -14,4 +14,8 @@ class Messages():
     TimeoutErrorMessage = "The interaction timed out."
     YesPlayLastEpisode = "Good i will play the last episode of the podcast you were listening to"
     NoPlayLastEpisode = "Ok i will play the most recent episode of the podcast"
+    FastForwarded = "Track was fastforwarded 30 seconds"
+    NotFastForwarded = "Track was not fastforwarded 30 seconds"
+    Rewinded = "Track was rewinded"
+    NotRewinded = "Track was not rewinded"
     def ConnectedTo(n): return f"I connected to {n}"

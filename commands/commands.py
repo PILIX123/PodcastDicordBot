@@ -176,6 +176,34 @@ async def queue(interaction: Interaction, name: str, episodeNumber: int, timesta
     QUEUE.update({interaction.guild_id: sources})
 
 
+async def fastforward(interaction: Interaction):
+    await interaction.response.defer(thinking=True)
+    currentSource = interaction.guild.voice_client.source
+    if currentSource:
+        new_timestamp = currentSource.timestamp + 30*1000
+        new_source = CustomAudio(currentSource.url, new_timestamp,
+                                 currentSource.playstate_id, before_options=f"-ss {new_timestamp}ms")
+        interaction.guild.voice_client.stop()
+        interaction.guild.voice_client.play(new_source)
+        await interaction.followup.send(Messages.FastForwarded)
+        return
+    await interaction.followup.send(Messages.NotFastForwarded)
+
+
+async def rewind(interaction: Interaction):
+    await interaction.response.defer(thinking=True)
+    currentSource = interaction.guild.voice_client.source
+    if currentSource:
+        new_timestamp = currentSource.timestamp - 15*1000
+        new_source = CustomAudio(
+            currentSource.url, new_timestamp, currentSource.playstate_id, before_options=f"-ss {new_timestamp}ms")
+        interaction.guild.voice_client.stop()
+        interaction.guild.voice_client.play(new_source)
+        await interaction.followup.send(Messages.Rewinded)
+        return
+    await interaction.followup.send(Messages.NotRewinded)
+
+
 async def settingAudio(interaction: Interaction, db: Database, session, name: str, episode_number: int, timestamp: str):
     podcast = await db.getPodcastFromTitle(session, name)
     user = await db.getUser(session, interaction.user.id)
