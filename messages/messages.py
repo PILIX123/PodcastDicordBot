@@ -19,4 +19,4 @@ class Messages():
     Rewinded = "Track was rewinded"
     NotRewinded = "Track was not rewinded"
     def ConnectedTo(n): return f"I connected to {n}"
-    def Playing(n, e): return f"Playing {n}  \nEpisode {e}"
+    def Playing(n, e): return f"Playing {n}\nEpisode {e}"

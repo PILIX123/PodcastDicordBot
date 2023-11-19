@@ -412,7 +412,7 @@ async def test_listPodcasts(mocker: MockerFixture):
     db.getUser.assert_awaited_once_with("TEST_SESSION", 123)
     db.getPodcastBulk.assert_awaited_once_with("TEST_SESSION", [1, 2])
     interaction.edit_original_response.assert_awaited_once_with(
-        content='You are subscribed to: \n- TEST1 \n- TEST2')
+        content='You are subscribed to: \n- TEST1\n- TEST2')
 
 
 @mark.asyncio
@@ -610,7 +610,7 @@ async def test_play(mocker: MockerFixture):
     customAudio.assert_called_once_with(
         "http://test.test/mp3", 0, 1, before_options="-ss 0ms")
     interaction.edit_original_response.assert_awaited_once_with(
-        content="Playing TEST_TITLE  \nEpisode 123: EPISODE_TITLE", view=None)
+        content="Playing TEST_TITLE\nEpisode 123: EPISODE_TITLE", view=None)
 
 
 @mark.asyncio
@@ -963,7 +963,7 @@ async def test_play_lastEpisodeId_Yes(mocker: MockerFixture):
     db.getEpisode.assert_awaited_once_with("TEST_SESSION", 1)
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
     interaction.edit_original_response.assert_has_awaits(
-        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE", view=None)])
+        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME\nEpisode 123: EPISODE_TITLE", view=None)])
 
 
 @mark.asyncio
@@ -1048,7 +1048,7 @@ async def test_play_lastEpisodeId_No(mocker: MockerFixture):
     db.getEpisode.assert_not_awaited()
     db.getPlaystateUserEpisode.assert_awaited_once_with("TEST_SESSION", 1, 1)
     interaction.edit_original_response.assert_has_awaits(
-        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME  \nEpisode 123: EPISODE_TITLE", view=None)])
+        [call(content=Messages.PlayMostRecentEpisode, view=customView), call(content="Playing TEST_NAME\nEpisode 123: EPISODE_TITLE", view=None)])
 
 
 @mark.asyncio
