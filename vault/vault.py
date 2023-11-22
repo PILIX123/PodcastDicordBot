@@ -6,7 +6,6 @@ from os import getenv
 class Vault():
     def __init__(self) -> None:
         load_dotenv(".env")
-        print(getenv("token"))
         self.client = Client(
             url="http://192.168.2.19:8200", token=getenv("token"))
 
