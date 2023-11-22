@@ -54,6 +54,7 @@ async def subscribe(interaction: Interaction, url: str, db: Database, session):
     reader = Reader(p)
     user = await db.getUser(session, interaction.user.id)
     podcast = await db.getPodcastFromTitle(session, reader.podcast.title)
+
     if (user is None):
         user = await db.addUser(session, interaction.user.id)
 
