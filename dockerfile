@@ -1,7 +1,7 @@
 FROM python:alpine3.18
 
 WORKDIR /app
-RUN apk --no-cache add musl-dev linux-headers g++
+RUN apk --no-cache add ffmpeg
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
@@ -18,5 +18,6 @@ COPY ./vault /app/vault
 WORKDIR /app
 COPY ./main.py .
 COPY .env .
+COPY ./list.sqlite .
 
 CMD [ "python3","main.py" ]
