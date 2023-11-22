@@ -5,11 +5,6 @@ from vault.vault import Vault
 from database.db import Database
 from commands import commands
 from enums.enums import CommandEnum
-import debugpy
-
-
-debugpy.listen(("0.0.0.0", 5678))
-debugpy.wait_for_client()
 
 
 vault = Vault()

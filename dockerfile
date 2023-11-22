@@ -1,9 +1,10 @@
 FROM python:alpine3.18
 
 WORKDIR /app
-RUN apk --no-cache add ffmpeg musl-dev libffi-dev g++
+RUN apk --no-cache add ffmpeg musl-dev libffi-dev g++ opus-dev
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+ENV LANG C.UTF-8
 
 COPY ./commands /app/commands
 COPY ./customViews /app/customViews
