@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "docker-run",
+            "label": "docker-run: debug",
+            "dependsOn": ["docker-build"],
+            "python": {
+                "file": "main.py"
+            }
+        }
+    ]
+}
