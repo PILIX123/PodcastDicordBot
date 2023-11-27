@@ -82,7 +82,7 @@ async def rw(interaction: Interaction):
 
 async def getEngine():
     engine = create_async_engine(
-        "sqlite+aiosqlite:///list.sqlite", echo=__debug__ == True)
+        "sqlite+aiosqlite:///data/list.sqlite", echo=__debug__ == True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     return engine

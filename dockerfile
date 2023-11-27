@@ -19,6 +19,5 @@ COPY ./vault /app/vault
 WORKDIR /app
 COPY ./main.py .
 COPY .env .
-COPY ./list.sqlite .
 
 CMD [ "python3","main.py" ]
