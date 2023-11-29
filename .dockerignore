@@ -11,3 +11,4 @@ LICENSE
 .pytest_cache/
 alembic.ini
 .gitignore
+.git/
