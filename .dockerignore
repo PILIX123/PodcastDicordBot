@@ -1,1 +1,13 @@
 __pycache__/
+.github/
+.vscode/
+archive/
+alembic/
+htmlcov/
+.coverage/
+pytest.ini
+README.md
+LICENSE
+.pytest_cache/
+alembic.ini
+.gitignore
